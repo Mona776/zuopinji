@@ -1,0 +1,7 @@
+node_modules/
+.DS_Store
+.env
+.env.*
+
+# Stitch download cache (regenerate via scripts)
+stitch-download/

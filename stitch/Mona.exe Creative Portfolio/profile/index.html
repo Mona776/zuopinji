@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mona.exe // System Information</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400;0,700;0,800;1,400;1,700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-container": "#ffdad6",
+                        "terminal-text": "#00FF66",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed-variant": "#5c4209",
+                        "background": "#f8f9fa",
+                        "outline": "#121212",
+                        "on-secondary-fixed": "#001a41",
+                        "secondary-fixed-dim": "#adc7ff",
+                        "on-tertiary-fixed": "#271900",
+                        "on-tertiary": "#ffffff",
+                        "window-border": "#121212",
+                        "outline-variant": "#b9ccb5",
+                        "primary-fixed": "#6bff83",
+                        "tertiary-fixed": "#ffdea5",
+                        "primary": "#006e27",
+                        "on-background": "#191c1d",
+                        "on-surface": "#191c1d",
+                        "on-primary-fixed": "#002107",
+                        "on-primary-container": "#007128",
+                        "on-secondary-container": "#fefcff",
+                        "primary-container": "#00ff66",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "error": "#E71D36",
+                        "surface-container": "#edeeef",
+                        "surface": "#f8f9fa",
+                        "secondary-container": "#20A4F3",
+                        "surface-container-low": "#f3f4f5",
+                        "secondary": "#0059bb",
+                        "tertiary-container": "#FFE66D",
+                        "surface-variant": "#e1e3e4",
+                        "inverse-on-surface": "#f0f1f2",
+                        "surface-container-high": "#e7e8e9",
+                        "primary-fixed-dim": "#00e55b",
+                        "console-black": "#121212",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-primary": "#ffffff",
+                        "on-primary-fixed-variant": "#00531b",
+                        "high-alert": "#FF3B30",
+                        "on-tertiary-container": "#795d23",
+                        "surface-bright": "#f8f9fa",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed": "#d8e2ff",
+                        "inverse-surface": "#2e3132",
+                        "tertiary-fixed-dim": "#e7c17d",
+                        "on-surface-variant": "#3b4b3a",
+                        "on-secondary-fixed-variant": "#004493",
+                        "surface-tint": "#006e27",
+                        "surface-dim": "#d9dadb",
+                        "tertiary": "#765a21",
+                        "inverse-primary": "#00e55b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "0px"
+                    },
+                    "spacing": {
+                        "base-unit": "4px",
+                        "margin-mobile": "16px",
+                        "gutter": "24px",
+                        "margin-desktop": "48px",
+                        "card-gap": "20px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Hanken Grotesk"],
+                        "code-sm": ["JetBrains Mono"],
+                        "headline-md-mobile": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "body-base": ["Hanken Grotesk"],
+                        "code-label": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "1.2", "fontWeight": "800"}],
+                        "code-sm": ["11px", {"lineHeight": "1.2", "fontWeight": "400"}],
+                        "headline-md-mobile": ["20px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "display-lg": ["48px", {"lineHeight": "1", "letterSpacing": "-0.04em", "fontWeight": "900"}],
+                        "body-base": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "code-label": ["13px", {"lineHeight": "1.4", "letterSpacing": "0.05em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .window-border { border: 2px solid #121212; }
+        .tactile-lift:hover {
+            transform: translate(-4px, -4px);
+            box-shadow: 4px 4px 0px 0px rgba(18, 18, 18, 1);
+        }
+        .cursor-blink::after {
+            content: '█';
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-[#f0f0f0] text-on-background font-body-base selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-white border-b-2 border-window-border">
+<nav class="flex justify-between items-center px-margin-mobile md:px-margin-desktop h-20 w-full max-w-[1440px] mx-auto">
+<div class="flex items-center gap-2">
+<span class="font-display-lg text-headline-md font-black text-console-black uppercase tracking-tighter">Mona.exe</span>
+</div>
+<div class="hidden md:flex gap-10 items-center">
+<a class="font-code-label text-code-label text-on-surface-variant hover:text-console-black transition-all uppercase" href="#">Projects</a>
+<a class="font-code-label text-code-label text-on-surface-variant hover:text-console-black transition-all uppercase" href="#">Experiments</a>
+<a class="font-code-label text-code-label text-console-black border-b-4 border-primary pb-1" href="#">About</a>
+</div>
+<div class="flex items-center">
+<div class="flex items-center gap-2 bg-surface-container px-3 py-1 border-2 border-window-border">
+<span class="w-2 h-2 bg-primary-container animate-pulse rounded-full shadow-[0_0_8px_rgba(0,255,102,0.6)]"></span>
+<span class="font-code-label text-[11px] uppercase">Online</span>
+</div>
+</div>
+</nav>
+</header>
+<main class="pt-32 pb-16 px-margin-mobile md:px-margin-desktop max-w-[1440px] mx-auto">
+<!-- System Title -->
+<div class="mb-12">
+<h1 class="font-display-lg text-display-lg uppercase tracking-tighter text-console-black mb-2">SYSTEM_INFORMATION</h1>
+<div class="h-1.5 w-32 bg-console-black"></div>
+<p class="font-code-label text-code-label text-on-surface-variant mt-4 uppercase font-bold tracking-widest">BUILD: 2024.Q4.STABLE // KERNEL: CREATIVE-OS</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-card-gap">
+<!-- Left Column: Portrait & Stats -->
+<div class="md:col-span-4 space-y-card-gap">
+<!-- Portrait Window -->
+<div class="window-border bg-white tactile-lift transition-all overflow-hidden flex flex-col">
+<div class="bg-console-black text-white px-3 py-1.5 flex justify-between items-center">
+<span class="font-code-sm text-code-sm uppercase tracking-widest">Identity.exe</span>
+<div class="flex gap-1">
+<div class="w-2.5 h-2.5 bg-white opacity-20"></div>
+<div class="w-2.5 h-2.5 bg-white opacity-50"></div>
+<div class="w-2.5 h-2.5 bg-white"></div>
+</div>
+</div>
+<div class="p-4 bg-white">
+<div class="aspect-square bg-surface-container border-2 border-window-border overflow-hidden">
+<img alt="Developer Portrait" class="w-full h-full object-cover grayscale contrast-125 hover:grayscale-0 transition-all duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfYmkHc3KfNFaLJmyGEXq38UsgRPXyiLwrVsgd3xL88IMqewrKETs1W17kt85kXpxl7vKxrlWt4lEJpw7qjFyW5MD7Qh5h8og_DUcjeqD8EUfVrtH07bT8QagtfezM3QPzEiAocJ3D4epbJCNnnpZz_MIUs_uDE6LPWPXA4AlhE4pSlv74vWvdv1lsPmPKo8y8k_aLU5FYWV2KCT9e4_8jbqM21NQwSjTvYNdHjbkAdVd4Rv2JKkUEhrsmffKbqDJjkZFcBmO9wis"/>
+</div>
+</div>
+<div class="p-4 bg-console-black text-white">
+<p class="font-code-sm text-[10px] text-primary-container uppercase opacity-60">Designation</p>
+<h2 class="font-headline-md text-headline-md tracking-tighter">MONA_RAMSEY</h2>
+</div>
+</div>
+<!-- Hardware Specs Window (RED) -->
+<div class="window-border bg-[#FF6B6B] tactile-lift transition-all flex flex-col">
+<div class="bg-console-black text-white px-3 py-1.5 flex justify-between items-center">
+<span class="font-code-sm text-code-sm uppercase tracking-widest">Specs.config</span>
+<span class="material-symbols-outlined text-[16px]">settings</span>
+</div>
+<div class="p-6 space-y-4 bg-white/90 m-2 border-2 border-window-border">
+<div class="flex flex-col gap-1">
+<span class="font-code-sm text-[10px] text-on-surface-variant uppercase font-bold">Role</span>
+<span class="font-code-label text-code-label uppercase font-black">Senior Interface Architect</span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="font-code-sm text-[10px] text-on-surface-variant uppercase font-bold">Origin</span>
+<span class="font-code-label text-code-label uppercase">London, UK (51.5074° N)</span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="font-code-sm text-[10px] text-on-surface-variant uppercase font-bold">Experience</span>
+<span class="font-code-label text-code-label uppercase">8.2 Years Total_Runtime</span>
+</div>
+<div class="pt-2">
+<span class="bg-console-black text-terminal-text font-code-label text-code-label px-3 py-1 uppercase block text-center">OPEN_FOR_COLLAB</span>
+</div>
+</div>
+</div>
+<!-- System State Window (GREEN) -->
+<div class="window-border bg-[#4ECDC4] tactile-lift transition-all">
+<div class="bg-console-black text-white px-3 py-1.5 flex justify-between items-center">
+<span class="font-code-sm text-code-sm uppercase tracking-widest">State.log</span>
+<div class="w-2 h-2 bg-primary-container rounded-full animate-pulse"></div>
+</div>
+<div class="p-6 space-y-5 bg-white/90 m-2 border-2 border-window-border">
+<div class="flex items-center justify-between">
+<span class="font-code-label text-code-label uppercase">Coffee</span>
+<span class="font-code-label text-code-label font-black text-primary">85% [OK]</span>
+</div>
+<div class="w-full bg-surface-container h-3 border-2 border-window-border p-0.5">
+<div class="bg-primary h-full w-[85%]"></div>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-code-label text-code-label uppercase">Focus</span>
+<span class="font-code-label text-code-label font-black text-secondary">DEEP_WORK</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-code-label text-code-label uppercase">CPU</span>
+<span class="font-code-label text-code-label font-black text-error">DREAMING</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Narrative & Stack -->
+<div class="md:col-span-8 space-y-card-gap">
+<!-- README Terminal Window (YELLOW) -->
+<div class="window-border bg-[#FFE66D] tactile-lift transition-all">
+<div class="bg-console-black text-white px-4 py-2 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-error border border-black/20"></div>
+<div class="w-3 h-3 rounded-full bg-[#FFE66D] border border-black/20"></div>
+<div class="w-3 h-3 rounded-full bg-[#4ECDC4] border border-black/20"></div>
+<span class="ml-2 font-code-label text-code-label uppercase tracking-widest text-[11px]">README.md</span>
+</div>
+<span class="font-code-sm text-[10px] opacity-60 uppercase">UTF-8</span>
+</div>
+<div class="p-8 bg-white m-2 border-2 border-window-border min-h-[400px] flex flex-col">
+<div class="mb-6 space-y-6">
+<p class="font-code-label text-primary text-lg font-black">&gt; Initializing developer_profile.bin...</p>
+<p class="font-body-base text-body-base leading-relaxed text-console-black">
+                                I build digital experiences that live at the intersection of brutalist precision and whimsical play. My approach treats the browser as a canvas for software-inspired interfaces—stripping away the fluff to focus on high-density information architecture and tactile micro-interactions.
+                            </p>
+<p class="font-body-base text-body-base leading-relaxed text-console-black">
+                                Over the last decade, I've transitioned from a traditional UI designer into a hybrid creator, blending front-end engineering with a deep obsession for tech-nostalgia. I believe that modern web applications should feel as satisfying to use as a physical mechanical keyboard or a vintage operating system.
+                            </p>
+<div class="bg-surface-container-low p-6 border-l-8 border-console-black italic">
+<p class="font-code-label text-on-surface-variant">
+                                    "Code is poetry, but interfaces are the machine that makes it sing."
+                                </p>
+</div>
+<p class="font-body-base text-body-base leading-relaxed text-console-black">
+                                When I'm not pushing pixels or refactoring React components, you'll find me archived in old computer museums or experimenting with generative audio algorithms. Currently based in a sun-drenched studio in London.
+                            </p>
+<p class="cursor-blink font-black text-primary text-xl">&gt;</p>
+</div>
+</div>
+</div>
+<!-- Tech Stack Window (BLUE) -->
+<div class="window-border bg-[#20A4F3] tactile-lift transition-all">
+<div class="bg-console-black text-white px-4 py-2 flex items-center justify-between">
+<span class="font-code-label text-code-label uppercase tracking-widest text-[11px]">TECH_STACK.DLL</span>
+<span class="material-symbols-outlined text-[18px]">inventory_2</span>
+</div>
+<div class="p-8 bg-white m-2 border-2 border-window-border">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="space-y-4">
+<p class="font-code-label text-[11px] text-on-surface-variant uppercase border-b-2 border-window-border pb-1">01. Frameworks</p>
+<div class="flex flex-wrap gap-2">
+<span class="bg-console-black text-white font-code-label text-[11px] px-3 py-1 uppercase">React.js</span>
+<span class="bg-primary-container text-on-primary-container border-2 border-window-border font-code-label text-[11px] px-3 py-0.5 uppercase">TailwindCSS</span>
+<span class="bg-surface-container font-code-label text-[11px] px-3 py-1 uppercase">Next.js</span>
+<span class="bg-surface-container font-code-label text-[11px] px-3 py-1 uppercase">Framer Motion</span>
+</div>
+</div>
+<div class="space-y-4">
+<p class="font-code-label text-[11px] text-on-surface-variant uppercase border-b-2 border-window-border pb-1">02. Design_Systems</p>
+<div class="flex flex-wrap gap-2">
+<span class="bg-console-black text-white font-code-label text-[11px] px-3 py-1 uppercase">Figma</span>
+<span class="bg-surface-container font-code-label text-[11px] px-3 py-1 uppercase">Adobe Suite</span>
+<span class="bg-[#FFE66D] border-2 border-window-border font-code-label text-[11px] px-3 py-0.5 uppercase">Prototyping</span>
+</div>
+</div>
+<div class="space-y-4">
+<p class="font-code-label text-[11px] text-on-surface-variant uppercase border-b-2 border-window-border pb-1">03. Logic_Engine</p>
+<div class="flex flex-wrap gap-2">
+<span class="bg-console-black text-white font-code-label text-[11px] px-3 py-1 uppercase">Node.js</span>
+<span class="bg-surface-container font-code-label text-[11px] px-3 py-1 uppercase">PostgreSQL</span>
+<span class="bg-[#4ECDC4] border-2 border-window-border font-code-label text-[11px] px-3 py-0.5 uppercase">GraphQL</span>
+</div>
+</div>
+<div class="space-y-4">
+<p class="font-code-label text-[11px] text-on-surface-variant uppercase border-b-2 border-window-border pb-1">04. Lab_Tools</p>
+<div class="flex flex-wrap gap-2">
+<span class="bg-console-black text-white font-code-label text-[11px] px-3 py-1 uppercase">Git</span>
+<span class="bg-surface-container font-code-label text-[11px] px-3 py-1 uppercase">Docker</span>
+<span class="bg-primary-container border-2 border-window-border font-code-label text-[11px] px-3 py-0.5 uppercase">VS Code</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Call to Action (VIBRANT) -->
+<div class="bg-primary-container border-4 border-window-border p-8 flex flex-col md:flex-row items-center justify-between gap-8 group shadow-[8px_8px_0px_0px_#121212] hover:translate-y-[-4px] hover:translate-x-[-4px] hover:shadow-[12px_12px_0px_0px_#121212] transition-all">
+<div>
+<span class="font-code-label text-code-label text-on-primary-container uppercase block mb-2 tracking-[0.2em] font-black">&gt; Neural_Link</span>
+<h4 class="font-display-lg text-display-lg text-console-black uppercase leading-none">Ready to collaborate?</h4>
+</div>
+<button class="bg-console-black text-primary-container px-10 py-5 font-headline-md uppercase flex items-center gap-3 border-b-8 border-primary active:translate-y-[4px] active:border-b-0 transition-all whitespace-nowrap">
+                        Initiate_Sequence <span class="material-symbols-outlined font-black">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-white border-t-4 border-window-border py-12">
+<div class="max-w-[1440px] mx-auto px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="flex flex-col items-center md:items-start gap-2">
+<span class="font-display-lg text-headline-md text-console-black font-black uppercase">Mona.exe</span>
+<span class="font-code-sm text-code-sm text-on-surface-variant uppercase font-bold">v1.0.4-stable // built for play</span>
+</div>
+<div class="flex gap-12">
+<a class="font-code-label text-code-label uppercase hover:text-primary transition-all border-b-2 border-transparent hover:border-primary" href="#">GitHub</a>
+<a class="font-code-label text-code-label uppercase hover:text-primary transition-all border-b-2 border-transparent hover:border-primary" href="#">Twitter</a>
+<a class="font-code-label text-code-label uppercase hover:text-primary transition-all border-b-2 border-transparent hover:border-primary" href="#">Logs</a>
+</div>
+<div class="font-code-label text-code-label text-on-surface-variant uppercase font-bold opacity-30">
+                © 2024 ALL_RIGHTS_RESERVED
+            </div>
+</div>
+</footer>
+<script>
+        // Atmospheric effects
+        document.addEventListener('mousemove', (e) => {
+            const statusIndicator = document.querySelector('.animate-pulse');
+            if (statusIndicator) {
+                const rect = statusIndicator.getBoundingClientRect();
+                const dist = Math.hypot(e.clientX - rect.left, e.clientY - rect.top);
+                statusIndicator.style.animationDuration = dist < 200 ? '0.2s' : '1.5s';
+            }
+        });
+        
+        // Random "system glitches" on titles
+        const titles = document.querySelectorAll('h1, h2');
+        titles.forEach(title => {
+            title.addEventListener('mouseenter', () => {
+                if (Math.random() > 0.5) {
+                    title.classList.add('italic');
+                    setTimeout(() => title.classList.remove('italic'), 150);
+                }
+            });
+        });
+    </script>
+</body></html>

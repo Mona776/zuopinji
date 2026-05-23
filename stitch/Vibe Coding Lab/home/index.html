@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link rel="icon" href="/assets/favicon.ico" sizes="any"/>
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png"/>
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png"/>
+<title>MONA.EXE | Digital Playroom</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&amp;family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "secondary-fixed": "#d8e2ff",
+                "on-primary": "#ffffff",
+                "on-primary-fixed-variant": "#00531b",
+                "on-secondary-container": "#fefcff",
+                "inverse-on-surface": "#f0f1f2",
+                "surface-tint": "#006e27",
+                "tertiary-fixed": "#ffdea5",
+                "on-secondary": "#ffffff",
+                "outline": "#6b7c68",
+                "error-container": "#ffdad6",
+                "tertiary": "#765a21",
+                "on-tertiary-fixed": "#271900",
+                "tertiary-container": "#ffd892",
+                "surface-container-high": "#e7e8e9",
+                "surface": "#f8f9fa",
+                "secondary-container": "#0070ea",
+                "background": "#f8f9fa",
+                "surface-variant": "#e1e3e4",
+                "on-tertiary": "#ffffff",
+                "secondary": "#0059bb",
+                "console-black": "#121212",
+                "inverse-surface": "#2e3132",
+                "terminal-text": "#00FF66",
+                "outline-variant": "#b9ccb5",
+                "secondary-fixed-dim": "#adc7ff",
+                "tertiary-fixed-dim": "#e7c17d",
+                "on-primary-fixed": "#002107",
+                "on-error": "#ffffff",
+                "on-surface": "#191c1d",
+                "window-border": "#E5E7EB",
+                "surface-container-highest": "#e1e3e4",
+                "surface-container-low": "#f3f4f5",
+                "surface-bright": "#f8f9fa",
+                "on-primary-container": "#007128",
+                "on-secondary-fixed": "#001a41",
+                "primary-container": "#00ff66",
+                "on-error-container": "#93000a",
+                "surface-dim": "#d9dadb",
+                "primary": "#006e27",
+                "on-surface-variant": "#3b4b3a",
+                "surface-container-lowest": "#ffffff",
+                "high-alert": "#FF3B30",
+                "primary-fixed": "#6bff83",
+                "inverse-primary": "#00e55b",
+                "primary-fixed-dim": "#00e55b",
+                "on-background": "#191c1d",
+                "on-tertiary-fixed-variant": "#5c4209",
+                "on-secondary-fixed-variant": "#004493",
+                "on-tertiary-container": "#795d23",
+                "error": "#ba1a1a",
+                "surface-container": "#edeeef"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+            },
+            "spacing": {
+                "gutter": "24px",
+                "card-gap": "20px",
+                "base-unit": "4px",
+                "margin-mobile": "16px",
+                "margin-desktop": "48px"
+            },
+            "fontFamily": {
+                "headline-md": ["Hanken Grotesk"],
+                "code-sm": ["JetBrains Mono"],
+                "code-label": ["JetBrains Mono"],
+                "body-base": ["Hanken Grotesk"],
+                "display-lg": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                "headline-md-mobile": ["20px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                "code-sm": ["11px", {"lineHeight": "1.2", "fontWeight": "400"}],
+                "headline-md": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                "code-label": ["13px", {"lineHeight": "1.4", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                "body-base": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .tactile-lift:hover {
+            transform: translate(-4px, -4px);
+            box-shadow: 4px 4px 0px 0px rgba(18, 18, 18, 0.1);
+        }
+        .status-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .4; }
+        }
+    </style>
+</head>
+<body class="bg-[#f0f0f0] text-on-background font-body-base selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col">
+<header class="fixed top-0 left-0 right-0 z-50 bg-white border-b-2 border-window-border">
+<nav class="flex justify-between items-center px-margin-mobile md:px-margin-desktop h-20 w-full max-w-[1440px] mx-auto">
+<div class="flex items-center gap-2">
+<a class="flex items-center gap-3 no-underline text-inherit hover:opacity-80 transition-opacity" href="/home/">
+<img alt="" class="w-10 h-10 shrink-0 object-contain" height="40" src="/assets/icon.png" width="40"/>
+<span class="font-display-lg text-headline-md font-black text-console-black uppercase tracking-tighter">MONA.EXE</span>
+</a>
+</div>
+<div class="hidden md:flex gap-10 items-center">
+<a class="font-code-label text-code-label text-console-black border-b-4 border-primary pb-1 uppercase no-underline" href="/home/">Experiments</a>
+<a class="font-code-label text-code-label text-on-surface-variant hover:text-console-black transition-all uppercase no-underline" href="/profile/">About</a>
+</div>
+<div class="flex items-center">
+<div class="flex items-center gap-2 bg-surface-container px-3 py-1 border-2 border-window-border">
+<span class="w-2 h-2 bg-primary-container animate-pulse rounded-full shadow-[0_0_8px_rgba(0,255,102,0.6)] site-status-pip"></span>
+<span class="font-code-label text-[11px] uppercase text-console-black">Online</span>
+</div>
+</div>
+</nav>
+</header>
+<main class="flex-grow max-w-[1440px] mx-auto w-full px-margin-mobile md:px-margin-desktop pt-32 pb-16">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-card-gap">
+<a href="/project-detail/?project=evergreen" class="group relative flex flex-col border-[3px] border-console-black overflow-hidden tactile-lift aspect-[16/9] cursor-pointer no-underline text-inherit bg-white">
+<div class="h-2.5 shrink-0" style="background-color:#4ECDC4"></div>
+<div class="relative flex-1 min-h-0 overflow-hidden border-[3px] border-t-0 border-console-black" style="border-color:#4ECDC4">
+<img alt="Evergreen" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" src="../covers/evergreen.png"/>
+<div class="absolute top-2 right-2 z-10 px-2 py-0.5 bg-console-black/75 font-code-sm text-code-sm uppercase tracking-wider text-white">evergreen.exe</div>
+</div>
+</a>
+<a href="/project-detail/?project=butterfly" class="group relative flex flex-col border-[3px] border-console-black overflow-hidden tactile-lift aspect-[16/9] cursor-pointer no-underline text-inherit bg-white">
+<div class="h-2.5 shrink-0" style="background-color:#8c8eff"></div>
+<div class="relative flex-1 min-h-0 overflow-hidden border-[3px] border-t-0 border-console-black" style="border-color:#8c8eff">
+<video class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03] grayscale group-hover:grayscale-0" src="../videos/butterfly.mp4" poster="../covers/butterfly.png" muted loop playsinline autoplay preload="metadata" aria-label="Digital Butterfly preview"></video>
+<div class="absolute top-2 right-2 z-10 px-2 py-0.5 bg-console-black/75 font-code-sm text-code-sm uppercase tracking-wider text-white">butterfly.exe</div>
+</div>
+</a>
+<a href="/project-detail/?project=ignis" class="group relative flex flex-col border-[3px] border-console-black overflow-hidden tactile-lift aspect-[16/9] cursor-pointer no-underline text-inherit bg-white">
+<div class="h-2.5 shrink-0" style="background-color:#E71D36"></div>
+<div class="relative flex-1 min-h-0 overflow-hidden border-[3px] border-t-0 border-console-black" style="border-color:#E71D36">
+<video class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03] grayscale group-hover:grayscale-0" src="../videos/ignis.mp4" poster="../covers/ignis.png" muted loop playsinline autoplay preload="metadata" aria-label="火系魔法师 preview"></video>
+<div class="absolute top-2 right-2 z-10 px-2 py-0.5 bg-console-black/75 font-code-sm text-code-sm uppercase tracking-wider text-white">ignis.exe</div>
+</div>
+</a>
+<a href="/project-detail/?project=duckhunt" class="group relative flex flex-col border-[3px] border-console-black overflow-hidden tactile-lift aspect-[16/9] cursor-pointer no-underline text-inherit bg-white">
+<div class="h-2.5 shrink-0" style="background-color:#6B8E23"></div>
+<div class="relative flex-1 min-h-0 overflow-hidden border-[3px] border-t-0 border-console-black" style="border-color:#6B8E23">
+<img alt="Duck Hunt Hand" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" src="../covers/duckhunt.png"/>
+<div class="absolute top-2 right-2 z-10 px-2 py-0.5 bg-console-black/75 font-code-sm text-code-sm uppercase tracking-wider text-white">duckhunt.exe</div>
+</div>
+</a>
+<a href="/project-detail/?project=luckykitty" class="group relative flex flex-col border-[3px] border-console-black overflow-hidden tactile-lift aspect-[16/9] cursor-pointer no-underline text-inherit bg-white">
+<div class="h-2.5 shrink-0" style="background-color:#FFE66D"></div>
+<div class="relative flex-1 min-h-0 overflow-hidden border-[3px] border-t-0 border-console-black" style="border-color:#FFE66D">
+<img alt="Lucky Kitty" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" src="../covers/luckykitty.png"/>
+<div class="absolute top-2 right-2 z-10 px-2 py-0.5 bg-console-black/75 font-code-sm text-code-sm uppercase tracking-wider text-white">luckykitty.exe</div>
+</div>
+</a>
+<a href="/project-detail/?project=mortytarot" class="group relative flex flex-col border-[3px] border-console-black overflow-hidden tactile-lift aspect-[16/9] cursor-pointer no-underline text-inherit bg-white">
+<div class="h-2.5 shrink-0" style="background-color:#FF6B6B"></div>
+<div class="relative flex-1 min-h-0 overflow-hidden border-[3px] border-t-0 border-console-black" style="border-color:#FF6B6B">
+<img alt="Morty Tarot" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" src="../covers/mortytarot.png"/>
+<div class="absolute top-2 right-2 z-10 px-2 py-0.5 bg-console-black/75 font-code-sm text-code-sm uppercase tracking-wider text-white">mortytarot.exe</div>
+</div>
+</a>
+<a href="/project-detail/?project=balatrocats" class="group relative flex flex-col border-[3px] border-console-black overflow-hidden tactile-lift aspect-[16/9] cursor-pointer no-underline text-inherit bg-white">
+<div class="h-2.5 shrink-0" style="background-color:#2EC4B6"></div>
+<div class="relative flex-1 min-h-0 overflow-hidden border-[3px] border-t-0 border-console-black" style="border-color:#2EC4B6">
+<img alt="Battle Cats TD" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" src="../covers/balatrocats.png"/>
+<div class="absolute top-2 right-2 z-10 px-2 py-0.5 bg-console-black/75 font-code-sm text-code-sm uppercase tracking-wider text-white">battlecats.exe</div>
+</div>
+</a>
+<a href="/project-detail/?project=rainjournal" class="group relative flex flex-col border-[3px] border-console-black overflow-hidden tactile-lift aspect-[16/9] cursor-pointer no-underline text-inherit bg-white">
+<div class="h-2.5 shrink-0" style="background-color:#0059bb"></div>
+<div class="relative flex-1 min-h-0 overflow-hidden border-[3px] border-t-0 border-console-black" style="border-color:#0059bb">
+<img alt="Rain Journal" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" src="../covers/rainjournal.png" onerror="this.onerror=null;this.src='../covers/rainjournal.svg'"/>
+<div class="absolute top-2 right-2 z-10 px-2 py-0.5 bg-console-black/75 font-code-sm text-code-sm uppercase tracking-wider text-white">rainjournal.exe</div>
+</div>
+</a>
+<a href="/project-detail/?project=dumplingchef" class="group relative flex flex-col border-[3px] border-console-black overflow-hidden tactile-lift aspect-[16/9] cursor-pointer no-underline text-inherit bg-white">
+<div class="h-2.5 shrink-0" style="background-color:#FF9F1C"></div>
+<div class="relative flex-1 min-h-0 overflow-hidden border-[3px] border-t-0 border-console-black" style="border-color:#FF9F1C">
+<img alt="Dumpling Chef" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" src="../covers/dumplingchef.png"/>
+<div class="absolute top-2 right-2 z-10 px-2 py-0.5 bg-console-black/75 font-code-sm text-code-sm uppercase tracking-wider text-white">dumpling.exe</div>
+</div>
+</a>
+<a href="/project-detail/?project=pixelfarm" class="group relative flex flex-col border-[3px] border-console-black overflow-hidden tactile-lift aspect-[16/9] cursor-pointer no-underline text-inherit bg-white">
+<div class="h-2.5 shrink-0" style="background-color:#6BBF59"></div>
+<div class="relative flex-1 min-h-0 overflow-hidden border-[3px] border-t-0 border-console-black" style="border-color:#6BBF59">
+<img alt="Pixel Farm" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" src="../covers/pixelfarm.png"/>
+<div class="absolute top-2 right-2 z-10 px-2 py-0.5 bg-console-black/75 font-code-sm text-code-sm uppercase tracking-wider text-white">pixelfarm.exe</div>
+</div>
+</a>
+<a href="/project-detail/?project=tiktoktrends" class="group relative flex flex-col border-[3px] border-console-black overflow-hidden tactile-lift aspect-[16/9] cursor-pointer no-underline text-inherit bg-white">
+<div class="h-2.5 shrink-0" style="background-color:#FE2C55"></div>
+<div class="relative flex-1 min-h-0 overflow-hidden border-[3px] border-t-0 border-console-black" style="border-color:#25F4EE">
+<img alt="TikTok Trends Daily" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" src="../covers/tiktoktrends.png"/>
+<div class="absolute top-2 right-2 z-10 px-2 py-0.5 bg-console-black/75 font-code-sm text-code-sm uppercase tracking-wider text-white">TIKTOK_DAILY</div>
+</div>
+</a>
+<a href="/project-detail/?project=redditmonitor" class="group relative flex flex-col border-[3px] border-console-black overflow-hidden tactile-lift aspect-[16/9] cursor-pointer no-underline text-inherit bg-white">
+<div class="h-2.5 shrink-0" style="background-color:#FF4500"></div>
+<div class="relative flex-1 min-h-0 overflow-hidden border-[3px] border-t-0 border-console-black" style="border-color:#FF4500">
+<img alt="Reddit Monitor" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" src="../covers/redditmonitor.png"/>
+<div class="absolute top-2 right-2 z-10 px-2 py-0.5 bg-console-black/75 font-code-sm text-code-sm uppercase tracking-wider text-white">REDDIT_MON</div>
+</div>
+</a>
+</div>
+</main>
+<footer class="bg-white border-t-4 border-window-border py-12 mt-auto">
+<div class="max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="flex flex-col items-center md:items-start gap-2">
+<span class="font-display-lg text-headline-md text-console-black font-black uppercase">Mona.exe</span>
+<span class="font-code-sm text-code-sm text-on-surface-variant uppercase font-bold">v1.0.4-stable // built for play</span>
+</div>
+<div class="flex flex-wrap justify-center gap-8 md:gap-12 items-center">
+<a class="font-code-label text-code-label uppercase hover:text-primary transition-all border-b-2 border-transparent hover:border-primary no-underline inline-flex items-center gap-1" href="https://github.com/Mona776" target="_blank" rel="noopener noreferrer">
+<span class="inline-flex shrink-0 w-[18px] h-[18px]" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0A12 12 0 0 0 0 12c0 5.52 3.66 10.19 8.68 11.85.63.12.86-.28.86-.63 0-.31-.01-1.36-.02-2.47-3.34.73-4.03-1.42-4.03-1.42-.55-1.38-1.35-1.96-1.35-1.96-1.1-.75.08-.73.08-.73 1.2.08 1.84 1.23 1.84 1.23 1.08 1.83 2.83 1.3 3.52.99.11-.77.43-1.32.78-1.65-2.66-.3-5.46-1.33-5.46-5.32 0-1.18.42-2.14 1.11-2.9-.11-.28-.48-1.39.11-2.87 0 0 .9-.29 2.96 1.14a10.3 10.3 0 0 1 2.74-.37c.93 0 1.86.12 2.74.37 2.06-1.43 2.96-1.14 2.96-1.14.59 1.48.22 2.59.11 2.87.69.76 1.11 1.72 1.11 2.9 0 3.99-2.81 5.02-5.48 5.29.44.38.83 1.12.83 2.27v3.36c0 .32.25.69.86.57A12 12 0 0 0 24 12 12 12 0 0 0 12 0z"/></svg></span>
+GitHub
+</a>
+<a id="footer-email" class="font-code-label text-code-label uppercase hover:text-primary transition-all border-b-2 border-transparent hover:border-primary no-underline inline-flex items-center gap-1 cursor-pointer" href="mailto:mona0124@foxmail.com" data-email="mona0124@foxmail.com" title="复制邮箱并打开邮件">
+<span class="material-symbols-outlined text-[18px] leading-none">mail</span>
+Email
+</a>
+</div>
+<div class="font-code-label text-code-label text-on-surface-variant uppercase font-bold opacity-30 text-center md:text-right">
+© 2024 ALL_RIGHTS_RESERVED
+</div>
+</div>
+</footer>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const pip = document.querySelector('.site-status-pip');
+  if (pip) {
+    document.addEventListener('mousemove', (e) => {
+      const rect = pip.getBoundingClientRect();
+      const dist = Math.hypot(e.clientX - rect.left, e.clientY - rect.top);
+      pip.style.animationDuration = dist < 200 ? '0.2s' : '1.5s';
+    });
+  }
+  const emailBtn = document.getElementById('footer-email');
+  if (emailBtn) {
+    emailBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const addr = emailBtn.dataset.email || 'mona0124@foxmail.com';
+      try {
+        await navigator.clipboard.writeText(addr);
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = addr;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      window.location.href = 'mailto:' + addr;
+    });
+  }
+});
+</script>
+</body></html>

@@ -1,0 +1,35 @@
+{
+  "version": 2,
+  "site": ["Vercel", "Tailwind CSS"],
+  "projects": {
+    "evergreen": ["Vanilla JS", "Web Audio"],
+    "butterfly": ["Canvas 2D", "MediaPipe"],
+    "ignis": ["Three.js", "MediaPipe"],
+    "duckhunt": ["Canvas 2D", "MediaPipe"],
+    "luckykitty": ["Vanilla JS"],
+    "mortytarot": ["Vanilla JS"],
+    "balatrocats": ["Vanilla JS"],
+    "rainjournal": ["WebGL2"],
+    "dumplingchef": ["Canvas 2D"],
+    "pixelfarm": ["Canvas 2D"],
+    "tiktoktrends": ["GitHub Actions", "Gemini"],
+    "redditmonitor": ["GitHub Actions", "Gemini"]
+  },
+  "categories": [
+    {
+      "num": "01",
+      "title": "Web_Runtime",
+      "pick": ["Vanilla JS", "Canvas 2D", "WebGL2", "Three.js"]
+    },
+    {
+      "num": "02",
+      "title": "Interaction",
+      "pick": ["MediaPipe", "Web Audio"]
+    },
+    {
+      "num": "03",
+      "title": "Ship_Automate",
+      "pick": ["Vercel", "Tailwind CSS", "GitHub Actions", "Gemini"]
+    }
+  ]
+}

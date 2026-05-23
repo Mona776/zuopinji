@@ -1,0 +1,103 @@
+{
+  "site": {
+    "name": "MONA.EXE",
+    "tagline": "PLAY · BUILD · SHIP",
+    "description": "做能玩的内容，也做能省事的工具——MONA.EXE vibecoding 作品集。",
+    "email": "hello@example.com",
+    "github": "https://github.com",
+    "year": 2026
+  },
+  "projects": [
+    {
+      "slug": "rainjournal",
+      "type": "play",
+      "title": "Rain Journal",
+      "tagline": "WebGL2 雨滴折射日记 — 雨势、雾深与 Pluvial Notes",
+      "description": "雨夜玻璃折射下的沉浸式日记：多页条目自动保存、画笔手绘、背景图/视频上传，以及雨势、雾深、折射与雨声音量控制。部署于 rijiben-scpr.vercel.app。",
+      "tags": ["WebGL2", "Shader", "Diary", "Vercel"],
+      "image": "../assets/covers/rainjournal.svg",
+      "demoUrl": "https://rijiben-scpr.vercel.app/",
+      "repoUrl": "https://github.com/Mona776/rijiben/tree/main/raniyyyy",
+      "featured": true,
+      "aspect": "video"
+    },
+    {
+      "slug": "neon-prism",
+      "type": "play",
+      "title": "Neon Prism Logic",
+      "tagline": "霓虹玻璃质感的交互实验",
+      "description": "WebGL 氛围与鼠标联动的界面实验，适合作为 Hero 展示。",
+      "tags": ["Web", "Canvas", "Interactive"],
+      "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuBSKRArBAct96n_Zgb1dNgb8xQTR1f7YYJ7mywy3KEB52YcLBW8h9mHI4FSYRsiWl2j-OuTu-obBaJ7atmGJMF88d1ZfVdg9kmsAu_zurdY4yHuXHvybk8j-WWhySUKhkyZoWgjpRmzqGr4-pTWe0KF3N-su9hwo_JcXuMB6fhui_IewDCnA1Znm7wzHlCS3TKXQ0FVEc_Gj-R02udVWoY1c_9g_KR3GNotum_Clxm1I5Pke76Ltq8o5AdHi4tmu0HMlS8o551XfA",
+      "demoUrl": "",
+      "repoUrl": "",
+      "featured": true,
+      "aspect": "video"
+    },
+    {
+      "slug": "fluid-synth",
+      "type": "play",
+      "title": "Fluid Synth",
+      "tagline": "音频驱动的流体视觉",
+      "description": "实时 Web 流体与 generative 视觉的小游戏/交互 demo。",
+      "tags": ["WebGL", "Generative"],
+      "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuD_JCYtgEvq_fHj9tx34j5is8RTOBnIulQpRDRrt8Dn-r75FLRR0uy91zjB1lRXCjzOQ05lrzckPVa4ok0yTDssqNjk-aSXCEWF_tL1ERSChhW6Jz8ihIXYSsKuuX1IscjxDa9VXqzj20B9vzfAZtlP-0r5BSVG5GNV__0fo8t0gV597lTjjRH1FZwmizuUNK2Jj43gTgdsOcncEyztRjhUdA6dtm-jESDVyjatjKB5cl-SlPmBIBRwk94TZgwrOKvlFX9jik9j2w",
+      "demoUrl": "",
+      "repoUrl": "",
+      "featured": false,
+      "aspect": "video"
+    },
+    {
+      "slug": "vibe-shell",
+      "type": "tool",
+      "title": "Vibe Shell",
+      "tagline": "带主题注入的终端小工具",
+      "description": "命令行风格的小工具，快速试想法、跑脚本。",
+      "tags": ["Tool", "CLI"],
+      "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuDoTDwhuPefo8RDDsOcGc_NHlWq8Qg8RQsCtuYvL5vL86qRjTAGs1Zd79XjP_kt1Yq7wyOC_uIpYHOOI-Ma8vycNSMuRtrpVh4sAJ19yLK-klEOaVhH21PWputufKa1wRJIjUAZu12WDrf6PXKMoMeUMpIkNqRfvfmGgp0fKVdNR54P8uWNvVA03gaGb27gwU_7YsMrKAPMT5eUVEvNX5bEhBkwdreur56mCslv4_DQ9RzYKRE2ikja9murU3zQvrB-aEh4OAWJSA",
+      "demoUrl": "",
+      "repoUrl": "",
+      "featured": false,
+      "aspect": "tall"
+    },
+    {
+      "slug": "pulse-visualizer",
+      "type": "tool",
+      "title": "Pulse Visualizer",
+      "tagline": "数据脉冲可视化工具",
+      "description": "交互式指标面板，适合展示工具类作品。",
+      "tags": ["React", "D3"],
+      "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuAtvFwrvqpXMtgAc4yRqzmYGE6FZ5p5RXtuZBvxklBDbebEWgupgLFH7T-vPs77tdo_dOiurpB64K2Hm9CRcGCoUfsXq-BSPR1OIiridJebq_RchDEHbL0vzTqVXdi5OLMl7H8c6Z2b4JCtSPNMFeBSoaP8wILOIOTDbs-D56dYvR6cEKDhcsCjXJRynZqT9E27y8CBR-9pji-SX-gQ-NCu-FXhGtqtA-YAoXPDlZimu4biefTKah4L6F7IzKEFAwk9P0bLo_9kuw",
+      "demoUrl": "",
+      "repoUrl": "",
+      "featured": false,
+      "aspect": "square"
+    },
+    {
+      "slug": "ghost-cli",
+      "type": "tool",
+      "title": "Ghost CLI",
+      "tagline": "一键部署静态站点",
+      "description": "把 vibecoded 页面快速推到边缘网络的工具向作品。",
+      "tags": ["Tool", "Deploy"],
+      "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuD1lnvWGqLwUNKLPuG6VmcVUeJFagZ9XE174brc-gHl6tkJMa3GUo96TAYDEYPoSokGy_c5jD7h4ntLz6WaaZsMg2LIXbsX3OYjJVE_Tk2KYcTU3YAoc7Fw-JUNRNkjj8umif9QIN1Nd57iRM2-22Fr3acrANi-T49owiRKbojwfiyvF6NsN083ljGRE-LcGwY4nlcYlrOGk07UmOo7VaDLO6NvVbDms2Vdin-3aHI_iZ224XvVznbHBnrw1mKYn0Xql6M5mJ0x9Q",
+      "demoUrl": "",
+      "repoUrl": "",
+      "featured": false,
+      "aspect": "video"
+    },
+    {
+      "slug": "neural-link",
+      "type": "play",
+      "title": "Neural Link",
+      "tagline": "脑机风格交互小游戏",
+      "description": "偏实验向的交互/游戏类作品占位，可替换为你的 Vercel 链接。",
+      "tags": ["Game", "Interactive"],
+      "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuAFK19qQ5nuQcxodAS0ssy5tkAYF3LZckuTJHCIfu3mQ7O8KyFMj29ztrqOgP6IUnDU0TQo5qoOU0mUq4muvo-VWVcEFSQFvXKWRST9s1HtJ-1gizwMzpRWAnpTwHZpe3-01GKnPrASVlJlgrxBDOI7vSkv3CgDjEKWJA8yXG_7sxurvjQTjh10VQZv-7oMQxd9LjHSQdHgkl7NN_p6wMqpo0YVtByiLM91PDRKd8CkjKtGjEjPMzN0NeF-VAd675HlmxvrQYprqA",
+      "demoUrl": "",
+      "repoUrl": "",
+      "featured": false,
+      "aspect": "video"
+    }
+  ]
+}

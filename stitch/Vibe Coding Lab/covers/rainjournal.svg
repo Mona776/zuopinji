@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#060810"/>
+      <stop offset="55%" stop-color="#0a1428"/>
+      <stop offset="100%" stop-color="#102038"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="800" height="450" fill="url(#bg)"/>
+  <g opacity="0.35" stroke="#50dc9a" stroke-width="1">
+    <line x1="80" y1="40" x2="95" y2="120"/><line x1="160" y1="20" x2="172" y2="95"/>
+    <line x1="240" y1="60" x2="252" y2="140"/><line x1="320" y1="10" x2="330" y2="80"/>
+    <line x1="400" y1="50" x2="412" y2="130"/><line x1="480" y1="30" x2="490" y2="100"/>
+    <line x1="560" y1="70" x2="572" y2="150"/><line x1="640" y1="25" x2="650" y2="90"/>
+    <line x1="720" y1="55" x2="732" y2="125"/>
+  </g>
+  <rect x="220" y="95" width="360" height="260" rx="6" fill="rgba(6,10,24,0.75)" stroke="rgba(80,220,160,0.55)" stroke-width="2"/>
+  <rect x="238" y="118" width="120" height="10" rx="2" fill="rgba(210,230,255,0.5)"/>
+  <rect x="238" y="150" width="300" height="6" rx="2" fill="rgba(140,180,220,0.25)"/>
+  <rect x="238" y="168" width="280" height="6" rx="2" fill="rgba(140,180,220,0.2)"/>
+  <rect x="238" y="186" width="260" height="6" rx="2" fill="rgba(140,180,220,0.18)"/>
+  <text x="400" y="340" text-anchor="middle" font-family="monospace" font-size="22" letter-spacing="6" fill="rgba(210,230,255,0.85)" filter="url(#glow)">RAIN JOURNAL</text>
+  <circle cx="400" cy="78" r="4" fill="#50dc9a"/>
+</svg>

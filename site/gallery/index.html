@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed-dim": "#ecb1ff",
+                    "error": "#ffb4ab",
+                    "tertiary-fixed-dim": "#ffb1c3",
+                    "on-primary": "#520070",
+                    "on-secondary-container": "#00686f",
+                    "on-error-container": "#ffdad6",
+                    "background": "#131313",
+                    "primary-fixed": "#f9d8ff",
+                    "surface-bright": "#3a3939",
+                    "inverse-on-surface": "#313030",
+                    "on-primary-fixed-variant": "#75009e",
+                    "on-primary-fixed": "#320046",
+                    "on-secondary-fixed": "#002022",
+                    "on-tertiary-fixed-variant": "#8f0041",
+                    "on-tertiary": "#66002c",
+                    "on-surface-variant": "#d5c0d7",
+                    "surface-container-high": "#2a2a2a",
+                    "on-secondary-fixed-variant": "#004f54",
+                    "error-container": "#93000a",
+                    "surface-container-highest": "#353534",
+                    "tertiary-fixed": "#ffd9e0",
+                    "surface-tint": "#ecb1ff",
+                    "primary-container": "#bf00ff",
+                    "secondary": "#d3fbff",
+                    "primary": "#ecb1ff",
+                    "surface": "#131313",
+                    "surface-dim": "#131313",
+                    "secondary-fixed-dim": "#00dbe9",
+                    "outline": "#9d8ba0",
+                    "surface-variant": "#353534",
+                    "surface-container": "#201f1f",
+                    "on-secondary": "#00363a",
+                    "surface-container-lowest": "#0e0e0e",
+                    "inverse-primary": "#9900ce",
+                    "tertiary-container": "#e8006e",
+                    "secondary-container": "#00eefc",
+                    "on-primary-container": "#ffffff",
+                    "on-tertiary-container": "#ffffff",
+                    "surface-container-low": "#1c1b1b",
+                    "on-surface": "#e5e2e1",
+                    "tertiary": "#ffb1c3",
+                    "on-background": "#e5e2e1",
+                    "secondary-fixed": "#7df4ff",
+                    "on-error": "#690005",
+                    "inverse-surface": "#e5e2e1",
+                    "outline-variant": "#514254",
+                    "on-tertiary-fixed": "#3f0019"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xl": "80px",
+                    "gutter": "24px",
+                    "base": "4px",
+                    "xs": "8px",
+                    "md": "24px",
+                    "container-max": "1280px",
+                    "sm": "16px",
+                    "lg": "48px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "display-lg-mobile": ["Inter"],
+                    "code-md": ["JetBrains Mono"],
+                    "body-lg": ["Inter"],
+                    "label-caps": ["JetBrains Mono"]
+            },
+            "fontSize": {
+                    "headline-md": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "800"}],
+                    "display-lg-mobile": ["40px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "code-md": ["14px", {"lineHeight": "1.7", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #050505;
+            overflow-x: hidden;
+        }
+        .glass-card {
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            border-color: #ecb1ff;
+            box-shadow: 0 0 30px rgba(191, 0, 255, 0.2);
+            transform: scale(1.02);
+        }
+        .masonry-grid {
+            column-count: 1;
+            column-gap: 24px;
+        }
+        @media (min-width: 768px) { .masonry-grid { column-count: 2; } }
+        @media (min-width: 1024px) { .masonry-grid { column-count: 3; } }
+        
+        .masonry-item {
+            break-inside: avoid;
+            margin-bottom: 24px;
+        }
+
+        .neon-glow-text {
+            text-shadow: 0 0 10px rgba(236, 177, 255, 0.5);
+        }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { 
+            background: linear-gradient(to bottom, #ecb1ff, #bf00ff);
+            border-radius: 10px;
+        }
+
+        .ambient-light {
+            position: fixed;
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(circle, rgba(191, 0, 255, 0.08) 0%, rgba(5, 5, 5, 0) 70%);
+            z-index: -1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="text-on-surface font-body-lg" data-page="gallery">
+<!-- Ambient Background Decorations -->
+<div class="ambient-light top-[-10%] left-[-10%] animate-pulse"></div>
+<div class="ambient-light bottom-[-10%] right-[-10%] opacity-50"></div>
+<!-- TopNavBar -->
+<nav class="fixed top-0 left-1/2 -translate-x-1/2 w-[90%] mt-6 rounded-full bg-surface/60 backdrop-blur-xl border border-white/10 shadow-[0_0_20px_rgba(191,0,255,0.1)] flex justify-between items-center px-8 py-3 z-50">
+<div class="font-headline-md text-headline-md font-bold tracking-tighter text-primary drop-shadow-[0_0_10px_rgba(236,177,255,0.8)]">MONA.EXE</div>
+<div class="hidden md:flex items-center space-x-lg">
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-300 font-body-lg text-body-lg" href="#">Tools</a>
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-body-lg text-body-lg" href="#">Projects</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors duration-300 font-body-lg text-body-lg" href="/profile/">About</a>
+</div>
+<button class="bg-primary-container text-on-primary-container px-sm py-xs rounded-full font-label-caps text-label-caps hover:scale-105 transition-transform duration-200 hover:shadow-[0_0_25px_rgba(191,0,255,0.4)]">
+            Hire Me
+        </button>
+</nav>
+<!-- Main Content -->
+<main class="pt-[160px] pb-xl px-gutter max-w-container-max mx-auto">
+<header class="mb-lg text-center md:text-left">
+<h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg mb-sm">Laboratory <span class="text-primary-fixed-dim">Works</span></h1>
+<p class="max-w-2xl text-on-surface-variant font-body-lg">A curated collection of experimental interfaces, generative tools, and high-performance engineering prototypes. Each module is built to push the boundaries of modern vibecoding.</p>
+</header>
+<!-- Gallery Filters (Contextual) -->
+<div class="flex flex-wrap gap-xs mb-lg">
+<button type="button" data-filter="all" class="px-sm py-xs rounded-full border border-primary text-primary font-label-caps text-label-caps bg-primary/10">全部</button>
+<button type="button" data-filter="play" class="px-sm py-xs rounded-full border border-outline-variant/30 text-on-surface-variant hover:border-secondary-fixed-dim hover:text-secondary-fixed-dim transition-all font-label-caps text-label-caps">游戏 / 交互</button>
+<button type="button" data-filter="tool" class="px-sm py-xs rounded-full border border-outline-variant/30 text-on-surface-variant hover:border-secondary-fixed-dim hover:text-secondary-fixed-dim transition-all font-label-caps text-label-caps">工具</button>
+</div>
+<!-- Masonry Grid -->
+<div class="masonry-grid">
+<!-- Tool 1 -->
+<div class="masonry-item group relative glass-card rounded-xl overflow-hidden">
+<div class="aspect-video relative overflow-hidden">
+<img alt="Abstract fluid simulation" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-105 group-hover:scale-110" data-alt="A mesmerizing 3D fluid simulation featuring neon pink and electric cyan liquids swirling together in a zero-gravity environment. The lighting is dramatic, high-contrast, with cinematic glows and microscopic bubbles catching the light. The overall aesthetic is dark, high-tech, and futuristic, perfectly matching a cyberpunk developer portfolio." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_JCYtgEvq_fHj9tx34j5is8RTOBnIulQpRDRrt8Dn-r75FLRR0uy91zjB1lRXCjzOQ05lrzckPVa4ok0yTDssqNjk-aSXCEWF_tL1ERSChhW6Jz8ihIXYSsKuuX1IscjxDa9VXqzj20B9vzfAZtlP-0r5BSVG5GNV__0fo8t0gV597lTjjRH1FZwmizuUNK2Jj43gTgdsOcncEyztRjhUdA6dtm-jESDVyjatjKB5cl-SlPmBIBRwk94TZgwrOKvlFX9jik9j2w"/>
+<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+<button class="bg-primary-container text-on-primary-container px-lg py-sm rounded-full font-label-caps text-label-caps flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform">
+<span class="material-symbols-outlined">rocket_launch</span>
+                            Launch
+                        </button>
+</div>
+</div>
+<div class="p-md">
+<div class="flex justify-between items-start mb-xs">
+<h3 class="font-code-md text-code-md font-bold text-primary-fixed-dim uppercase tracking-wider">Fluid_Synth.v1</h3>
+<span class="material-symbols-outlined text-outline text-sm">open_in_new</span>
+</div>
+<p class="text-on-surface-variant text-sm mb-md line-clamp-2">Real-time WebGL fluid dynamics engine for audio-reactive visual performances.</p>
+<div class="flex flex-wrap gap-xs">
+<span class="font-label-caps text-[10px] text-secondary-fixed-dim border border-secondary-fixed-dim/30 px-xs py-[2px] rounded">Three.js</span>
+<span class="font-label-caps text-[10px] text-tertiary-fixed-dim border border-tertiary-fixed-dim/30 px-xs py-[2px] rounded">GLSL</span>
+</div>
+</div>
+</div>
+<!-- Tool 2 (Taller item) -->
+<div class="masonry-item group relative glass-card rounded-xl overflow-hidden">
+<div class="aspect-[3/4] relative overflow-hidden">
+<img alt="Retro computer aesthetic" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-105 group-hover:scale-110" data-alt="A vintage 80s computer terminal glowing in a pitch-black room, displaying complex green and purple code. Thick cables and hardware components are visible in the soft neon haze. The style is vaporwave meets hard-surface engineering, emphasizing a moody, tech-focused atmosphere with soft depth-of-field." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDoTDwhuPefo8RDDsOcGc_NHlWq8Qg8RQsCtuYvL5vL86qRjTAGs1Zd79XjP_kt1Yq7wyOC_uIpYHOOI-Ma8vycNSMuRtrpVh4sAJ19yLK-klEOaVhH21PWputufKa1wRJIjUAZu12WDrf6PXKMoMeUMpIkNqRfvfmGgp0fKVdNR54P8uWNvVA03gaGb27gwU_7YsMrKAPMT5eUVEvNX5bEhBkwdreur56mCslv4_DQ9RzYKRE2ikja9murU3zQvrB-aEh4OAWJSA"/>
+<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+<button class="bg-primary-container text-on-primary-container px-lg py-sm rounded-full font-label-caps text-label-caps flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform">
+<span class="material-symbols-outlined">terminal</span>
+                            Explore
+                        </button>
+</div>
+</div>
+<div class="p-md">
+<h3 class="font-code-md text-code-md font-bold text-primary-fixed-dim uppercase tracking-wider mb-xs">Vibe_Shell</h3>
+<p class="text-on-surface-variant text-sm mb-md">A custom-built terminal emulator with built-in vibecoding shortcuts and theme injection.</p>
+<div class="flex flex-wrap gap-xs">
+<span class="font-label-caps text-[10px] text-secondary-fixed-dim border border-secondary-fixed-dim/30 px-xs py-[2px] rounded">Rust</span>
+<span class="font-label-caps text-[10px] text-tertiary-fixed-dim border border-tertiary-fixed-dim/30 px-xs py-[2px] rounded">WASM</span>
+</div>
+</div>
+</div>
+<!-- Tool 3 -->
+<div class="masonry-item group relative glass-card rounded-xl overflow-hidden">
+<div class="aspect-square relative overflow-hidden">
+<img alt="Gradient data visualization" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-105 group-hover:scale-110" data-alt="A complex data visualization map composed of thousands of glowing dots and thin geometric lines. The colors transition from deep violet to bright electric pink against a charcoal black background. The image has a clean, high-end technical feel with sharp details and a sense of infinite digital space." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtvFwrvqpXMtgAc4yRqzmYGE6FZ5p5RXtuZBvxklBDbebEWgupgLFH7T-vPs77tdo_dOiurpB64K2Hm9CRcGCoUfsXq-BSPR1OIiridJebq_RchDEHbL0vzTqVXdi5OLMl7H8c6Z2b4JCtSPNMFeBSoaP8wILOIOTDbs-D56dYvR6cEKDhcsCjXJRynZqT9E27y8CBR-9pji-SX-gQ-NCu-FXhGtqtA-YAoXPDlZimu4biefTKah4L6F7IzKEFAwk9P0bLo_9kuw"/>
+<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+<button class="bg-primary-container text-on-primary-container px-lg py-sm rounded-full font-label-caps text-label-caps flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform">
+<span class="material-symbols-outlined">query_stats</span>
+                            Analyze
+                        </button>
+</div>
+</div>
+<div class="p-md">
+<h3 class="font-code-md text-code-md font-bold text-primary-fixed-dim uppercase tracking-wider mb-xs">Pulse_Visualizer</h3>
+<p class="text-on-surface-variant text-sm mb-md">Interactive crypto-metric dashboard with neural network prediction overlays.</p>
+<div class="flex flex-wrap gap-xs">
+<span class="font-label-caps text-[10px] text-secondary-fixed-dim border border-secondary-fixed-dim/30 px-xs py-[2px] rounded">React</span>
+<span class="font-label-caps text-[10px] text-tertiary-fixed-dim border border-tertiary-fixed-dim/30 px-xs py-[2px] rounded">D3.js</span>
+</div>
+</div>
+</div>
+<!-- Tool 4 -->
+<div class="masonry-item group relative glass-card rounded-xl overflow-hidden">
+<div class="aspect-video relative overflow-hidden">
+<img alt="Cyberpunk character rig" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-105 group-hover:scale-110" data-alt="A highly detailed close-up of a futuristic robotic eye, showing intricate gold and chrome mechanical parts moving within a glowing iris. Soft pink ambient light reflects off the polished surfaces. The mood is mysterious and advanced, with a heavy emphasis on macro-photography detail and high-end engineering aesthetics." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFK19qQ5nuQcxodAS0ssy5tkAYF3LZckuTJHCIfu3mQ7O8KyFMj29ztrqOgP6IUnDU0TQo5qoOU0mUq4muvo-VWVcEFSQFvXKWRST9s1HtJ-1gizwMzpRWAnpTwHZpe3-01GKnPrASVlJlgrxBDOI7vSkv3CgDjEKWJA8yXG_7sxurvjQTjh10VQZv-7oMQxd9LjHSQdHgkl7NN_p6wMqpo0YVtByiLM91PDRKd8CkjKtGjEjPMzN0NeF-VAd675HlmxvrQYprqA"/>
+<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+<button class="bg-primary-container text-on-primary-container px-lg py-sm rounded-full font-label-caps text-label-caps flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform">
+<span class="material-symbols-outlined">visibility</span>
+                            View
+                        </button>
+</div>
+</div>
+<div class="p-md">
+<h3 class="font-code-md text-code-md font-bold text-primary-fixed-dim uppercase tracking-wider mb-xs">Neural_Link</h3>
+<p class="text-on-surface-variant text-sm mb-md">Brain-computer interface simulator using EEG-to-MIDI mapping for live coding.</p>
+<div class="flex flex-wrap gap-xs">
+<span class="font-label-caps text-[10px] text-secondary-fixed-dim border border-secondary-fixed-dim/30 px-xs py-[2px] rounded">Next.js</span>
+<span class="font-label-caps text-[10px] text-tertiary-fixed-dim border border-tertiary-fixed-dim/30 px-xs py-[2px] rounded">TensorFlow</span>
+</div>
+</div>
+</div>
+<!-- Tool 5 -->
+<div class="masonry-item group relative glass-card rounded-xl overflow-hidden">
+<div class="aspect-[4/3] relative overflow-hidden">
+<img alt="React code visualization" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-105 group-hover:scale-110" data-alt="A stunning 3D fractal landscape made entirely of floating code snippets and bracket icons. The environment is bathed in a soft neon cyan glow with deep magenta shadows. The perspective is from a low angle, making the digital peaks feel monumental and immersive. The lighting is cinematic with volumetric light rays." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkU31citX_Nh-moSbds1vl5AvP4IvogkqyDoobL0H94ZxfNAiGj8-ancu4rT5pPKIaahUbAN-S5KIASgic6V5L7_8bPJJ9GC4_PwBbcE5oRnH_cfT3LSL-2pZWjuPN9utklviQq9ShUqwmxNSDXi_640TvFdgv2A4ev-kqdi1ReOTfN-YYl50CZWeqwAO10BVTt-62q-4mGNAZELBxicTbMoFO24eZfbC5Hk87HqU7NUroAkYLK5_2F5UaPP1mi-YqnN5OvskpWA"/>
+<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+<button class="bg-primary-container text-on-primary-container px-lg py-sm rounded-full font-label-caps text-label-caps flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform">
+<span class="material-symbols-outlined">code_blocks</span>
+                            Code
+                        </button>
+</div>
+</div>
+<div class="p-md">
+<h3 class="font-code-md text-code-md font-bold text-primary-fixed-dim uppercase tracking-wider mb-xs">Component_Arch</h3>
+<p class="text-on-surface-variant text-sm mb-md">Automated design system generator that maps Figma tokens to React components via AI.</p>
+<div class="flex flex-wrap gap-xs">
+<span class="font-label-caps text-[10px] text-secondary-fixed-dim border border-secondary-fixed-dim/30 px-xs py-[2px] rounded">OpenAI</span>
+<span class="font-label-caps text-[10px] text-tertiary-fixed-dim border border-tertiary-fixed-dim/30 px-xs py-[2px] rounded">Tailwind</span>
+</div>
+</div>
+</div>
+<!-- Tool 6 -->
+<div class="masonry-item group relative glass-card rounded-xl overflow-hidden">
+<div class="aspect-video relative overflow-hidden">
+<img alt="Cyber security concept" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-105 group-hover:scale-110" data-alt="An abstract visualization of digital security, featuring a complex grid of interlocking geometric shields glowing in neon green and electric purple. Thin data streams pulse between the nodes like lightning. The background is a dense, dark technological void with hints of structural framework in the shadows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbXKo7fnuhrxzQ1tf0DAjWpKdsNYvV4iBGTb2MbYkuur9deK2MWjpTp3IUesIoB959A_C1VtiI2zsynXK0vwEJpbJcGip7YJxpt_fysUcj_zHFxsHsWMvojq6uEl_RVpXW1tZtxboQpHmMp5A07wkNoVwEFbqGfy71mSGsBecgVRFATlBEuGDKweYLVNj_Ml694sldy3m0d8LZbBazUunpY7dopkNQcI4MFt_2fY62E--MJWqFYRpye1wbis_ePJtxr_d01hoHEA"/>
+<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+<button class="bg-primary-container text-on-primary-container px-lg py-sm rounded-full font-label-caps text-label-caps flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform">
+<span class="material-symbols-outlined">shield</span>
+                            Secure
+                        </button>
+</div>
+</div>
+<div class="p-md">
+<h3 class="font-code-md text-code-md font-bold text-primary-fixed-dim uppercase tracking-wider mb-xs">Ether_Gate</h3>
+<p class="text-on-surface-variant text-sm mb-md">Privacy-focused decentralized identity protocol for secure developer onboarding.</p>
+<div class="flex flex-wrap gap-xs">
+<span class="font-label-caps text-[10px] text-secondary-fixed-dim border border-secondary-fixed-dim/30 px-xs py-[2px] rounded">Solidity</span>
+<span class="font-label-caps text-[10px] text-tertiary-fixed-dim border border-tertiary-fixed-dim/30 px-xs py-[2px] rounded">Web3.js</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-xl px-gutter border-t border-outline-variant/30 bg-background">
+<div class="flex flex-col md:flex-row justify-between items-center max-w-container-max mx-auto space-y-md md:space-y-0">
+<div class="font-code-md text-code-md text-on-surface font-bold uppercase tracking-widest">MONA.EXE // Studio</div>
+<div class="flex space-x-md">
+<a class="text-on-surface-variant hover:text-secondary-fixed-dim transition-colors font-label-caps text-label-caps" href="#">Github</a>
+<a class="text-on-surface-variant hover:text-secondary-fixed-dim transition-colors font-label-caps text-label-caps" href="#">Discord</a>
+<a class="text-on-surface-variant hover:text-secondary-fixed-dim transition-colors font-label-caps text-label-caps" href="#">CodePen</a>
+<a class="text-on-surface-variant hover:text-secondary-fixed-dim transition-colors font-label-caps text-label-caps" href="#">MONA.EXE</a>
+</div>
+<div class="font-label-caps text-label-caps text-on-surface-variant">© 2026 MONA.EXE</div>
+</div>
+</footer>
+<script>
+        // Micro-interaction: Mouse tracking for ambient light
+        const light = document.querySelector('.ambient-light');
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+            light.style.transform = `translate(${x/10}px, ${y/10}px)`;
+        });
+
+        // Hover effect enhancement for glass cards
+        const cards = document.querySelectorAll('.glass-card');
+        cards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+                
+                // Subtle rotation effect
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = (y - centerY) / 20;
+                const rotateY = (centerX - x) / 20;
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)`;
+            });
+        });
+    </script>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/branding.js"></script>
+<script src="../assets/js/gallery.js"></script>
+</body></html>

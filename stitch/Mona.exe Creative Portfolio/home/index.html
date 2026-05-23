@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MONA.EXE | Digital Playroom</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&amp;family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "secondary-fixed": "#d8e2ff",
+                "on-primary": "#ffffff",
+                "on-primary-fixed-variant": "#00531b",
+                "on-secondary-container": "#fefcff",
+                "inverse-on-surface": "#f0f1f2",
+                "surface-tint": "#006e27",
+                "tertiary-fixed": "#ffdea5",
+                "on-secondary": "#ffffff",
+                "outline": "#6b7c68",
+                "error-container": "#ffdad6",
+                "tertiary": "#765a21",
+                "on-tertiary-fixed": "#271900",
+                "tertiary-container": "#ffd892",
+                "surface-container-high": "#e7e8e9",
+                "surface": "#f8f9fa",
+                "secondary-container": "#0070ea",
+                "background": "#f8f9fa",
+                "surface-variant": "#e1e3e4",
+                "on-tertiary": "#ffffff",
+                "secondary": "#0059bb",
+                "console-black": "#121212",
+                "inverse-surface": "#2e3132",
+                "terminal-text": "#00FF66",
+                "outline-variant": "#b9ccb5",
+                "secondary-fixed-dim": "#adc7ff",
+                "tertiary-fixed-dim": "#e7c17d",
+                "on-primary-fixed": "#002107",
+                "on-error": "#ffffff",
+                "on-surface": "#191c1d",
+                "window-border": "#E5E7EB",
+                "surface-container-highest": "#e1e3e4",
+                "surface-container-low": "#f3f4f5",
+                "surface-bright": "#f8f9fa",
+                "on-primary-container": "#007128",
+                "on-secondary-fixed": "#001a41",
+                "primary-container": "#00ff66",
+                "on-error-container": "#93000a",
+                "surface-dim": "#d9dadb",
+                "primary": "#006e27",
+                "on-surface-variant": "#3b4b3a",
+                "surface-container-lowest": "#ffffff",
+                "high-alert": "#FF3B30",
+                "primary-fixed": "#6bff83",
+                "inverse-primary": "#00e55b",
+                "primary-fixed-dim": "#00e55b",
+                "on-background": "#191c1d",
+                "on-tertiary-fixed-variant": "#5c4209",
+                "on-secondary-fixed-variant": "#004493",
+                "on-tertiary-container": "#795d23",
+                "error": "#ba1a1a",
+                "surface-container": "#edeeef"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+            },
+            "spacing": {
+                "gutter": "24px",
+                "card-gap": "20px",
+                "base-unit": "4px",
+                "margin-mobile": "16px",
+                "margin-desktop": "48px"
+            },
+            "fontFamily": {
+                "headline-md": ["Hanken Grotesk"],
+                "code-sm": ["JetBrains Mono"],
+                "code-label": ["JetBrains Mono"],
+                "body-base": ["Hanken Grotesk"],
+                "display-lg": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                "headline-md-mobile": ["20px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                "code-sm": ["11px", {"lineHeight": "1.2", "fontWeight": "400"}],
+                "headline-md": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                "code-label": ["13px", {"lineHeight": "1.4", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                "body-base": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .tactile-lift:hover {
+            transform: translate(-4px, -4px);
+            box-shadow: 4px 4px 0px 0px rgba(18, 18, 18, 0.1);
+        }
+        .status-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .4; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-base selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col">
+<!-- Top Navigation -->
+<header class="w-full border-b border-window-border bg-background dark:bg-console-black sticky top-0 z-50">
+<div class="flex flex-col md:flex-row justify-between items-center py-gutter px-margin-desktop max-w-[1440px] mx-auto w-full">
+<div class="flex flex-col items-center md:items-start mb-4 md:mb-0">
+<h1 class="font-display-lg text-display-lg font-extrabold tracking-tighter text-console-black dark:text-terminal-text uppercase">MONA.EXE</h1>
+<p class="font-code-label text-code-label text-on-surface-variant">experiments and artifacts by Mona</p>
+</div>
+<nav class="flex gap-6 items-center">
+<a class="text-primary dark:text-primary-fixed font-bold border-b-2 border-primary dark:border-primary-fixed pb-1 font-body-base text-body-base hover:text-primary transition-colors duration-200" href="#">Projects</a>
+<a class="text-on-surface-variant dark:text-surface-variant font-medium font-body-base text-body-base hover:text-primary transition-colors duration-200" href="#">Experiments</a>
+<a class="text-on-surface-variant dark:text-surface-variant font-medium font-body-base text-body-base hover:text-primary transition-colors duration-200" href="#">About</a>
+<div class="ml-4 px-3 py-1 bg-surface-container border border-window-border flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary-container status-pulse shadow-[0_0_8px_rgba(0,255,102,0.6)]"></span>
+<span class="font-code-label text-code-label uppercase text-on-surface-variant">System Status</span>
+</div>
+</nav>
+</div>
+</header>
+<!-- Main Grid Content -->
+<main class="flex-grow max-w-[1440px] mx-auto w-full px-margin-mobile md:px-margin-desktop py-12">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-card-gap">
+<!-- Project Card 1: Color Palette Generator -->
+<div class="group relative bg-[#FF6B6B] border border-window-border overflow-hidden tactile-lift transition-all duration-200 aspect-[16/9] flex flex-col justify-end cursor-pointer">
+<div class="absolute top-2 right-2 px-2 py-0.5 bg-console-black/10 font-code-sm text-code-sm uppercase tracking-wider text-console-black">palette.exe</div>
+<div class="p-6 bg-white/90 backdrop-blur-sm m-2 border border-window-border">
+<h2 class="font-headline-md text-headline-md mb-1">Color Palette Generator</h2>
+<p class="font-body-base text-body-base text-on-surface-variant">Neural-driven harmonic schemes.</p>
+</div>
+<div class="absolute inset-0 -z-10 opacity-30 group-hover:scale-110 transition-transform duration-700">
+<img class="w-full h-full object-cover" data-alt="A clean, vibrant abstract display of diverse color swatches overlapping each other in a grid-like structure. The lighting is crisp and uniform, evoking a professional design software interface. The colors are bold, including deep reds, bright greens, and electric blues, set against a light-mode gray background. The atmosphere is focused and creative, representing a high-end digital color tool." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6JjCF3LndQ7KNymsRM0h70M2yQCY1SCA-nKPVlGHqBWQ1hyLMYt0lLh-hyUTn8mxB7uLSJMYWIkA-Hdv9P_XwAIDfR1KQXxFEj1tm6mFRGgxB8q5PLl6pIoMwzoSza5AcexiyTxhLxNUnpqI1JJhSeYrACgmcqW6l8Ecb-gp6uJPc862KPqodNtkHyDM82JyQ7iOd5wmwSB-Mn3h4DhbtPPst8YghYPdVt8vw9ZVjnZcksPIci17ma39tKfkRt_pqbtlxnrswbZE"/>
+</div>
+</div>
+<!-- Project Card 2: ASCII Art Maker -->
+<div class="group relative bg-[#4ECDC4] border border-window-border overflow-hidden tactile-lift transition-all duration-200 aspect-[16/9] flex flex-col justify-end cursor-pointer">
+<div class="absolute top-2 right-2 px-2 py-0.5 bg-console-black/10 font-code-sm text-code-sm uppercase tracking-wider text-console-black">ascii_gen.exe</div>
+<div class="p-6 bg-white/90 backdrop-blur-sm m-2 border border-window-border">
+<h2 class="font-headline-md text-headline-md mb-1">ASCII Art Maker</h2>
+<p class="font-body-base text-body-base text-on-surface-variant">Convert images to text symbols.</p>
+</div>
+<div class="absolute inset-0 -z-10 opacity-40 group-hover:scale-110 transition-transform duration-700">
+<img class="w-full h-full object-cover" data-alt="A close-up of a digital screen showing complex strings of green ASCII characters forming the shape of a human face. The aesthetic is purely tech-nostalgic, reminiscent of 1980s terminal interfaces. The green text glows softly against a dark background, creating a high-contrast, data-heavy visual. The mood is mysterious and celebrates the early days of computer programming and digital art." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvi87QSqnNx7xrv-Irg2Ygh-zzZc-3d-JhCCkA_9CCNX4rrT4VEC8vjHbj7RHHEz5UUdWQAUCAuUe5FP_InlMZsNBV73ztWUFbRNKQ4DImIvY4EaS87L3Bvw-1XYp1yJzZMWFoSoe2RxxARb3LfAYr35gMOOVO1HBnpk_bl8uD5eYwlGh2Ya2g77UpSEWOHybt1jLpGTCFZAbitVSH9-g4KH5kw4H-lRtvplkMvoWoYL7Tx8Y96X77sgQgcW6nxyjYGKmQq3XqgSw"/>
+</div>
+</div>
+<!-- Project Card 3: Neural Network Playground -->
+<div class="group relative bg-[#FFE66D] border border-window-border overflow-hidden tactile-lift transition-all duration-200 aspect-[16/9] flex flex-col justify-end cursor-pointer">
+<div class="absolute top-2 right-2 px-2 py-0.5 bg-console-black/10 font-code-sm text-code-sm uppercase tracking-wider text-console-black">nn_play.exe</div>
+<div class="p-6 bg-white/90 backdrop-blur-sm m-2 border border-window-border">
+<h2 class="font-headline-md text-headline-md mb-1">Neural Playground</h2>
+<p class="font-body-base text-body-base text-on-surface-variant">Interactive weights and biases.</p>
+</div>
+<div class="absolute inset-0 -z-10 opacity-30 group-hover:scale-110 transition-transform duration-700">
+<img class="w-full h-full object-cover" data-alt="A complex network of interconnected glowing nodes and lines representing a neural network in a 3D digital space. The nodes pulsate with soft white light, and the connections are rendered in subtle primary colors. The overall lighting is bright and airy, maintaining a light-mode aesthetic while showcasing advanced technology. The mood is one of discovery and intellectual play within a digital sandbox." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgeH3F2OHUboeS8v6uW_aFkzK65oZEnvxS4VLo-oHb3KHg086eK2KICJl4dVedrQx0pdUXL9-thPgnYy3c1vJFGVQ4x5EbV1PlVnqfjlfrcjPie7tF0XQpoc2kWRF9riDpZBdnK77WNLndGPhdFkx81QPE1gBB8l8G5vi9C6PQzTUmroz25lUqZYFWcNzcW9cIFGNssTB-ibvVEUl8odP0nILnXU2yea6ciU6JTWYwO9MYB7s46TFcAYaA5sfz9WFLwMHysuQM9G0"/>
+</div>
+</div>
+<!-- Project Card 4: Virtual Pet .exe -->
+<div class="group relative bg-[#FF9F1C] border border-window-border overflow-hidden tactile-lift transition-all duration-200 aspect-[16/9] flex flex-col justify-end cursor-pointer">
+<div class="absolute top-2 right-2 px-2 py-0.5 bg-console-black/10 font-code-sm text-code-sm uppercase tracking-wider text-console-black">pet_sim.exe</div>
+<div class="p-6 bg-white/90 backdrop-blur-sm m-2 border border-window-border">
+<h2 class="font-headline-md text-headline-md mb-1">Virtual Pet .exe</h2>
+<p class="font-body-base text-body-base text-on-surface-variant">A pixelated friend for your desktop.</p>
+</div>
+<div class="absolute inset-0 -z-10 opacity-30 group-hover:scale-110 transition-transform duration-700">
+<img class="w-full h-full object-cover" data-alt="A cute, blocky pixel-art creature sitting on a vibrant green digital landscape under a bright blue sky. The style is intentionally low-resolution, echoing 90s handheld virtual pet devices. The lighting is sunny and cheerful, with bright saturated colors and sharp outlines. The atmosphere is nostalgic, playful, and charming, designed to evoke childhood memories of digital companions." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpsABP9imLMZl-6dM7s7BYavHnq3egguD6j8accsI8-7GtuKt6zjr01Q7DNVVg6wENw_468Q50kmAnw-s_A5LxlNh6xgOM_9eLy-TtWp9dkACqUiJnmSVI9Cof3p90OtAPjlBK7Fi5Y0vSKFNPTDO_ux4IuXl9gc5gsC2R4K-NnSxSsVELdgCo4sut9bq4-J8MJYR48kKYGzikcg60kOuHvv6sRxqM5lvPN_ZK0fghdeVimKfgplGxL4A5lPMTKSUm4Bht0X7sWyI"/>
+</div>
+</div>
+<!-- Project Card 5: Sound Scaper -->
+<div class="group relative bg-[#2EC4B6] border border-window-border overflow-hidden tactile-lift transition-all duration-200 aspect-[16/9] flex flex-col justify-end cursor-pointer">
+<div class="absolute top-2 right-2 px-2 py-0.5 bg-console-black/10 font-code-sm text-code-sm uppercase tracking-wider text-console-black">audio_v1.exe</div>
+<div class="p-6 bg-white/90 backdrop-blur-sm m-2 border border-window-border">
+<h2 class="font-headline-md text-headline-md mb-1">Sound Scaper</h2>
+<p class="font-body-base text-body-base text-on-surface-variant">Generative ambient noise generator.</p>
+</div>
+<div class="absolute inset-0 -z-10 opacity-30 group-hover:scale-110 transition-transform duration-700">
+<img class="w-full h-full object-cover" data-alt="A mesmerizing visualization of sound waves rendered as flowing, fluid ribbons of color in a minimalist white void. The ribbons transition through gradients of teal, blue, and violet. The lighting is soft and diffused, creating a calm and immersive atmosphere. The visual style is modern, clean, and highly sophisticated, reflecting a professional audio experimentation tool for digital creatives." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPoc9K06ZFhDgEzpFf5a3tkJf7jIK6Pjg3fuXOsphs8MtJFMxq3nF1KWH7Qa2uvwQGxjxL6sljzp5g4O1AL0OiCl0e5S0P_N5LcVD_NATZiKMlDpiHocjmA6DawBzwC8iBSvGOcP6Kf8bfQE3XA2O5B6338kSQKl1UDxCcgVZyP8KZJ8oejw6RKVDyLdhQSq8HKHdvGVQ-RabY2Hs9ooVHGQvGHdRoS0_2LySrW7r8_rE6Tl4hbLkARTaDBMvOXqcWmQGPQW6q2CU"/>
+</div>
+</div>
+<!-- Project Card 6: Grid Master -->
+<div class="group relative bg-[#E71D36] border border-window-border overflow-hidden tactile-lift transition-all duration-200 aspect-[16/9] flex flex-col justify-end cursor-pointer">
+<div class="absolute top-2 right-2 px-2 py-0.5 bg-console-black/10 font-code-sm text-code-sm uppercase tracking-wider text-console-black">grid_sys.exe</div>
+<div class="p-6 bg-white/90 backdrop-blur-sm m-2 border border-window-border">
+<h2 class="font-headline-md text-headline-md mb-1">Grid Master</h2>
+<p class="font-body-base text-body-base text-on-surface-variant">The ultimate layout playground.</p>
+</div>
+<div class="absolute inset-0 -z-10 opacity-30 group-hover:scale-110 transition-transform duration-700">
+<img class="w-full h-full object-cover" data-alt="An intricate layout of geometric shapes and guidelines arranged in a complex, multi-layered grid. The color palette consists of sharp blacks, pristine whites, and pops of vivid red, creating a high-end brutalist aesthetic. The lighting is bright and clinical, emphasizing the precision and mathematical beauty of the grid system. The mood is disciplined yet intensely creative, celebrating structural design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPaRDxEOTNor3Q6plOMTViB_Xj44Lf0G9ydFFN4Hun60Vn6gT_bsnJZlDpZ-pBTG2g0cuxgIF5Au4gfRWFfXMhJzzKL2yfOFsrBJ61dyKVWUTTu9-OHIzce5kM_KrPpHmuPpYZGjt13o2VBQ36ivNLjy8svc2wi1F_m1WhGxDNCzOn5FsLYnclSbgRqvw_wLoq3lItQ4Pvs5Cy8JSfHt4dmNV5SNbeyvpH9J2bZ31oCDijSRaypj_1Ay13xmNH-tZG21HelqIu6jU"/>
+</div>
+</div>
+<!-- Project Card 7: Logic Gate Sim -->
+<div class="group relative bg-[#CBF3F0] border border-window-border overflow-hidden tactile-lift transition-all duration-200 aspect-[16/9] flex flex-col justify-end cursor-pointer">
+<div class="absolute top-2 right-2 px-2 py-0.5 bg-console-black/10 font-code-sm text-code-sm uppercase tracking-wider text-console-black">logic.exe</div>
+<div class="p-6 bg-white/90 backdrop-blur-sm m-2 border border-window-border">
+<h2 class="font-headline-md text-headline-md mb-1">Logic Gate Sim</h2>
+<p class="font-body-base text-body-base text-on-surface-variant">Build computers from scratch.</p>
+</div>
+<div class="absolute inset-0 -z-10 opacity-30 group-hover:scale-110 transition-transform duration-700">
+<img class="w-full h-full object-cover" data-alt="A top-down view of a schematic diagram for a computer processor, featuring clean lines and technical symbols in a monospaced style. The background is a soft off-white, with circuits rendered in light blue and dark gray. The lighting is even and shadowless, echoing a professional engineering blueprint. The mood is one of deep logic and technical mastery, presented in a clean, modern interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDLy6E8kjVNCkyAyLUqLENykxG5B9oNWPZfi1-IlDI_Chdh9CxzrhVCeV4SZFGMjr8DFBBP2JfFUZo_1RpdnGaxgg7eiOu_b70S-464w7qJVV1zrjHL8_LbzG416wUQ6DxfTBpnHl5aE7OL-iwkMJBpEoq9hekoAej_AxIgaovJX3X60wvHeoOw3SOLwG0_6JtfelVDiuKd2fXbTUCVaZolu8h1QfdXycE78MXIAtXZYxhW1reYuoGfdTp0hHEGSgCHsNdYxaGGPAI"/>
+</div>
+</div>
+<!-- Project Card 8: Icon Font Engine -->
+<div class="group relative bg-[#FFBF69] border border-window-border overflow-hidden tactile-lift transition-all duration-200 aspect-[16/9] flex flex-col justify-end cursor-pointer">
+<div class="absolute top-2 right-2 px-2 py-0.5 bg-console-black/10 font-code-sm text-code-sm uppercase tracking-wider text-console-black">font_eng.exe</div>
+<div class="p-6 bg-white/90 backdrop-blur-sm m-2 border border-window-border">
+<h2 class="font-headline-md text-headline-md mb-1">Icon Font Engine</h2>
+<p class="font-body-base text-body-base text-on-surface-variant">Generate fonts from your sketches.</p>
+</div>
+<div class="absolute inset-0 -z-10 opacity-30 group-hover:scale-110 transition-transform duration-700">
+<img class="w-full h-full object-cover" data-alt="A gallery of minimalist glyphs and icons displayed on a digital screen, each one perfectly balanced and mathematically precise. The aesthetic is clean and high-key, with icons in a deep charcoal gray against a light gray-white background. The lighting is crisp, highlighting the sharp edges of each character. The atmosphere is one of professional craftsmanship and digital precision in typography design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZU_613irbRuHExNITIaAYwwd9XhEBKV-P64zucotPpWb2c6QqSue0jKqN9oO99lArD51qPwpPQM0EErDZVms8OqjX78WGSAmQHy_qWPtvKE55zGIEDCHrM_HWLce7cCMylXdwdO4vfeEPtxReSfLbeC4DlrmHjmgjXMyTy1o3OiN0_Igki6ARHDsbwuidTlv_m_aHHESud6ix5BUrPSIzIIhCP0n_zI1iULDT-1UjFrWXHBW35ev422xC0geIzkXyzMcD0cN5Qis"/>
+</div>
+</div>
+<!-- Project Card 9: Canvas Chaos -->
+<div class="group relative bg-[#20A4F3] border border-window-border overflow-hidden tactile-lift transition-all duration-200 aspect-[16/9] flex flex-col justify-end cursor-pointer">
+<div class="absolute top-2 right-2 px-2 py-0.5 bg-console-black/10 font-code-sm text-code-sm uppercase tracking-wider text-console-black">canvas.exe</div>
+<div class="p-6 bg-white/90 backdrop-blur-sm m-2 border border-window-border">
+<h2 class="font-headline-md text-headline-md mb-1">Canvas Chaos</h2>
+<p class="font-body-base text-body-base text-on-surface-variant">Collision physics as art.</p>
+</div>
+<div class="absolute inset-0 -z-10 opacity-30 group-hover:scale-110 transition-transform duration-700">
+<img class="w-full h-full object-cover" data-alt="A dynamic, high-energy explosion of colorful geometric primitives—spheres, cubes, and pyramids—captured in mid-air within a bright, minimalist studio space. The colors are intensely saturated, including neon yellows and vibrant cyans. The lighting is high-contrast, casting sharp, crisp shadows on the white floor. The mood is exhilarating and chaotic, celebrating the physics and vibrancy of digital objects." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB10cnnzOf_eHFipWR1EAIdUR46whPFZRWoassAi3NeyD-AIoTOfUcn3i9bpOOyHUQfmwru-9qu8vh6Ilyj6Rw7gDIr2Xe4zmqLyAjnDQTIIsmwIbGaoBSgFCdDE-YCg-s8gLLksseqbUlmWvAlJQkY1PKsllQanwfHK6WMezW3iOAYjRPAeOOdD7z5hKuVdXhR5Gswa-bQcOLtoc9V4AIxz9wibtMHJpI93EEuF32ng0jF22Dv-TNTsSaz88_PWMBx6RcwEoqifpI"/>
+</div>
+</div>
+</div>
+<!-- Call to Action Section -->
+<div class="mt-16 p-12 border border-window-border bg-surface-container-low text-center relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-secondary to-error"></div>
+<span class="font-code-label text-code-label text-secondary block mb-2 uppercase tracking-widest">&gt; system_prompt</span>
+<h3 class="font-display-lg text-display-lg font-extrabold mb-4 text-console-black">Want to build something?</h3>
+<p class="font-body-base text-body-base max-w-lg mx-auto mb-8 text-on-surface-variant">I'm currently accepting new experiments and collaborative artifacts. Launch your project with a specialist in tech-nostalgia.</p>
+<div class="flex flex-col sm:flex-row gap-4 justify-center">
+<button class="bg-primary-container text-on-primary-container px-8 py-3 font-headline-md border-b-4 border-primary hover:translate-y-1 hover:border-b-0 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">rocket_launch</span>
+                    INITIATE CONTACT
+                </button>
+<button class="bg-transparent text-console-black px-8 py-3 font-headline-md border-2 border-console-black hover:bg-console-black hover:text-white transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">folder_zip</span>
+                    DOWNLOAD CV
+                </button>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full border-t border-window-border bg-surface-container-lowest dark:bg-console-black mt-auto">
+<div class="flex flex-col md:flex-row justify-between items-center py-8 px-margin-desktop max-w-[1440px] mx-auto w-full gap-4">
+<div class="flex flex-col gap-1 items-center md:items-start">
+<span class="font-code-label text-code-label font-bold text-on-surface dark:text-on-surface-variant">MONA.EXE</span>
+<p class="font-code-label text-code-label text-on-surface-variant uppercase">© 2024 MONA.EXE - BUILT FOR PLAY</p>
+</div>
+<div class="flex gap-8">
+<a class="font-code-label text-code-label text-on-surface-variant dark:text-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-all flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-[18px]">terminal</span>
+                    GitHub
+                </a>
+<a class="font-code-label text-code-label text-on-surface-variant dark:text-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-all flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-[18px]">alternate_email</span>
+                    Twitter
+                </a>
+<a class="font-code-label text-code-label text-on-surface-variant dark:text-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-all flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-[18px]">help_center</span>
+                    Support
+                </a>
+<a class="font-code-label text-code-label text-on-surface-variant dark:text-surface-variant hover:text-secondary dark:hover:text-secondary-fixed transition-all flex items-center gap-1" href="mailto:hi@mona.exe">
+<span class="material-symbols-outlined text-[18px]">mail</span>
+                    Email
+                </a>
+</div>
+</div>
+</footer>
+<!-- Interactive Micro-Interactions -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Randomly flash the status indicator
+            const statusPip = document.querySelector('.status-pulse');
+            setInterval(() => {
+                if (Math.random() > 0.8) {
+                    statusPip.classList.remove('bg-primary-container');
+                    statusPip.classList.add('bg-high-alert');
+                    setTimeout(() => {
+                        statusPip.classList.remove('bg-high-alert');
+                        statusPip.classList.add('bg-primary-container');
+                    }, 500);
+                }
+            }, 5000);
+
+            // Add simple hover sounds logic (mocked via console)
+            const cards = document.querySelectorAll('.tactile-lift');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    // console.log('Mechanical Click Sound');
+                });
+            });
+        });
+    </script>
+</body></html>
