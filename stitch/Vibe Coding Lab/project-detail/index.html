@@ -364,6 +364,12 @@ document.addEventListener('DOMContentLoaded', () => {
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    position: relative;
+}
+/* nativeW iframe: use transform-origin center so flex centering + scale align correctly */
+#preview-panel:fullscreen #project-iframe,
+#preview-panel:-webkit-full-screen #project-iframe {
+    flex-shrink: 0;
 }
 </style>
 <script>
@@ -838,22 +844,29 @@ document.addEventListener('DOMContentLoaded', () => {
             const p = PROJECTS[slug];
             if (!p?.nativeW) return;
             const previewBody = document.getElementById('preview-body');
+
             if (document.fullscreenElement) {
-                // Fullscreen: fill the available space at natural scale
-                const fsW = window.innerWidth;
-                const fsH = window.innerHeight;
-                const fsScale = Math.min(fsW / p.nativeW, fsH / p.nativeH);
-                iframe.style.width = p.nativeW + 'px';
-                iframe.style.height = p.nativeH + 'px';
-                iframe.style.transform = `scale(${fsScale})`;
-                iframe.style.transformOrigin = 'top left';
+                // Wait one frame for fullscreen layout to settle, then fit-to-screen
+                requestAnimationFrame(() => {
+                    const fsW = previewBody.offsetWidth || window.innerWidth;
+                    const fsH = previewBody.offsetHeight || window.innerHeight;
+                    const fsScale = Math.min(fsW / p.nativeW, fsH / p.nativeH);
+                    iframe.classList.remove('flex-1');
+                    iframe.style.width = p.nativeW + 'px';
+                    iframe.style.height = p.nativeH + 'px';
+                    iframe.style.minHeight = p.nativeH + 'px';
+                    iframe.style.transform = `scale(${fsScale})`;
+                    iframe.style.transformOrigin = 'center center';
+                });
             } else {
-                // Restored: reapply container-based scale
+                // Restored: reapply container-based scale from top-left
                 const containerW = previewBody.offsetWidth || 800;
                 const scale = containerW / p.nativeW;
                 const scaledH = Math.round(p.nativeH * scale);
+                iframe.classList.remove('flex-1');
                 iframe.style.width = p.nativeW + 'px';
                 iframe.style.height = p.nativeH + 'px';
+                iframe.style.minHeight = p.nativeH + 'px';
                 iframe.style.transform = `scale(${scale})`;
                 iframe.style.transformOrigin = 'top left';
                 previewBody.style.height = scaledH + 'px';
