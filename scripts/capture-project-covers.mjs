@@ -50,6 +50,13 @@ const PROJECTS = [
     extraMs: 6000,
     timeout: 90000,
   },
+  {
+    slug: "xiaowu",
+    url: "https://lianmengxiaoheiwu.vercel.app/",
+    clickText: "CLICK TO START",
+    extraMs: 5000,
+    timeout: 90000,
+  },
   { slug: "luckykitty", url: "https://luckykitty.vercel.app/", extraMs: 5000 },
   { slug: "mortytarot", url: "https://mortytarot.vercel.app/", extraMs: 5000 },
   { slug: "balatrocats", url: "https://balatro-cats-r717.vercel.app/", extraMs: 6000 },
@@ -142,6 +149,25 @@ async function captureOne(browser, project) {
     }
 
     await waitForMedia(page);
+
+    if (project.clickText) {
+      try {
+        await page.evaluate((text) => {
+          const nodes = document.querySelectorAll("button, a, [role='button'], div, span");
+          for (const el of nodes) {
+            if (el.textContent?.trim().includes(text)) {
+              el.click();
+              return true;
+            }
+          }
+          return false;
+        }, project.clickText);
+        await new Promise((r) => setTimeout(r, 1200));
+        console.log(`  ${project.slug}: clicked "${project.clickText}"`);
+      } catch {
+        console.warn(`  ${project.slug}: could not click "${project.clickText}"`);
+      }
+    }
 
     if (project.keys?.length) {
       for (const key of project.keys) {

@@ -45,6 +45,13 @@ const PROJECTS_HOME = [
     poster: "covers/ignis.png",
   },
   { slug: "duckhunt", exe: "duckhunt.exe", title: "Duck Hunt Hand", desc: "Retro duck hunt — finger aim, thumb trigger, sky reload.", bg: "#6B8E23" },
+  {
+    slug: "xiaowu",
+    exe: "xiaowu.exe",
+    title: "联盟小黑屋",
+    desc: "WoW memorial × 2008 — QQ frozen chat, song clues, desktop layers.",
+    bg: "#1E4D8C",
+  },
   { slug: "luckykitty", exe: "luckykitty.exe", title: "Lucky Kitty", desc: "Token · SPIN · barrel-lens cat wish ritual.", bg: "#FFE66D" },
   { slug: "mortytarot", exe: "mortytarot.exe", title: "Morty Tarot", desc: "What Would Morty Do? — one card, one daily quote.", bg: "#FF6B6B" },
   { slug: "balatrocats", exe: "battlecats.exe", title: "Battle Cats TD", desc: "Balatro × Battle Cats — 5-stage lane TD + shop synergies.", bg: "#2EC4B6" },

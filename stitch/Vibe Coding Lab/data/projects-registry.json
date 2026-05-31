@@ -6,6 +6,7 @@
     "butterfly": ["Canvas 2D", "MediaPipe"],
     "ignis": ["Three.js", "MediaPipe"],
     "duckhunt": ["Canvas 2D", "MediaPipe"],
+    "xiaowu": ["Vanilla JS", "Web Audio"],
     "luckykitty": ["Vanilla JS"],
     "mortytarot": ["Vanilla JS"],
     "balatrocats": ["Vanilla JS"],
