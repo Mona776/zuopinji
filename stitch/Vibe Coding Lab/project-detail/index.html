@@ -440,6 +440,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 codeFile: 'xiaowu.js',
                 url: 'https://lianmengxiaoheiwu.vercel.app/',
                 host: 'lianmengxiaoheiwu.vercel.app',
+                nativeW: 1280,
+                nativeH: 800,
                 hint: 'Play below · CLICK TO START · explore WoW login, QQ 2008 chat, music player · clues in 给小雨.mp3 lyrics',
                 iframeTitle: '联盟小黑屋 — WoW Memorial Experience',
                 process: [
@@ -738,6 +740,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? '在 GitHub 打开仓库'
                 : (p.needsCamera ? '在新标签页打开（推荐：摄像头权限更稳定）' : '在新标签页打开');
 
+            // Reset any previous scale-embed state
+            const previewBody = document.getElementById('preview-body');
+            iframe.style.width = '';
+            iframe.style.height = '';
+            iframe.style.transform = '';
+            iframe.style.transformOrigin = '';
+            iframe.style.minHeight = '';
+            iframe.classList.add('flex-1');
+            previewBody.style.height = '';
+            previewBody.style.minHeight = '';
+
             if (isTool) {
                 iframe.removeAttribute('src');
                 iframe.src = 'about:blank';
@@ -760,6 +773,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 iframe.removeAttribute('sandbox');
                 iframe.src = p.url;
                 iframe.title = p.iframeTitle;
+
+                if (p.nativeW && p.nativeH) {
+                    const containerW = previewBody.offsetWidth || previewBody.clientWidth || 800;
+                    const scale = containerW / p.nativeW;
+                    const scaledH = Math.round(p.nativeH * scale);
+                    iframe.classList.remove('flex-1');
+                    iframe.style.width = p.nativeW + 'px';
+                    iframe.style.height = p.nativeH + 'px';
+                    iframe.style.minHeight = p.nativeH + 'px';
+                    iframe.style.transform = `scale(${scale})`;
+                    iframe.style.transformOrigin = 'top left';
+                    previewBody.style.height = scaledH + 'px';
+                    previewBody.style.minHeight = scaledH + 'px';
+                }
             }
             ['process-1', 'process-2', 'process-3'].forEach((id, i) => {
                 document.getElementById(id).textContent = p.process[i];
