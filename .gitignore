@@ -5,3 +5,9 @@ node_modules/
 
 # Stitch download cache (regenerate via scripts)
 stitch-download/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
