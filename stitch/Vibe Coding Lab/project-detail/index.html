@@ -349,6 +349,22 @@ document.addEventListener('DOMContentLoaded', () => {
 .text-terminal-green { color: #00FF66; }
 .pulse-glow { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .7; } }
+#preview-panel:fullscreen,
+#preview-panel:-webkit-full-screen {
+    background: #000;
+    display: flex;
+    flex-direction: column;
+}
+#preview-panel:fullscreen #preview-body,
+#preview-panel:-webkit-full-screen #preview-body {
+    flex: 1;
+    height: 100% !important;
+    min-height: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
 </style>
 <script>
         const PROJECTS = {
@@ -809,10 +825,39 @@ document.addEventListener('DOMContentLoaded', () => {
         const panel = document.getElementById('preview-panel');
         document.getElementById('btn-fullscreen')?.addEventListener('click', () => {
             if (!iframe) return;
-            if (iframe.requestFullscreen) {
-                iframe.requestFullscreen();
-            } else if (panel?.requestFullscreen) {
+            if (panel?.requestFullscreen) {
                 panel.requestFullscreen();
+            } else if (iframe.requestFullscreen) {
+                iframe.requestFullscreen();
+            }
+        });
+
+        // When entering/exiting fullscreen, recalculate scale for nativeW projects
+        document.addEventListener('fullscreenchange', () => {
+            const slug = new URLSearchParams(location.search).get('project') || 'evergreen';
+            const p = PROJECTS[slug];
+            if (!p?.nativeW) return;
+            const previewBody = document.getElementById('preview-body');
+            if (document.fullscreenElement) {
+                // Fullscreen: fill the available space at natural scale
+                const fsW = window.innerWidth;
+                const fsH = window.innerHeight;
+                const fsScale = Math.min(fsW / p.nativeW, fsH / p.nativeH);
+                iframe.style.width = p.nativeW + 'px';
+                iframe.style.height = p.nativeH + 'px';
+                iframe.style.transform = `scale(${fsScale})`;
+                iframe.style.transformOrigin = 'top left';
+            } else {
+                // Restored: reapply container-based scale
+                const containerW = previewBody.offsetWidth || 800;
+                const scale = containerW / p.nativeW;
+                const scaledH = Math.round(p.nativeH * scale);
+                iframe.style.width = p.nativeW + 'px';
+                iframe.style.height = p.nativeH + 'px';
+                iframe.style.transform = `scale(${scale})`;
+                iframe.style.transformOrigin = 'top left';
+                previewBody.style.height = scaledH + 'px';
+                previewBody.style.minHeight = scaledH + 'px';
             }
         });
 
