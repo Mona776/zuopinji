@@ -1,0 +1,127 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #000;
+}
+
+#input_video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* 水平翻转镜像 */
+  z-index: 1;
+}
+
+#three-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none; /* 让交互穿透到底层（如果需要） */
+}
+
+/* 隐藏 Vite 默认样式或不需要的元素 */
+#app {
+  display: none;
+}
+
+/* UI Overlay Styles */
+#ui-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+  pointer-events: none;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#loading-screen {
+  background: rgba(0, 0, 0, 0.8);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.5s ease;
+}
+
+.loader {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(255, 100, 0, 0.3);
+  border-radius: 50%;
+  border-top-color: #ff5500;
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 20px;
+  box-shadow: 0 0 15px rgba(255, 85, 0, 0.5);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+#controls {
+  position: absolute;
+  bottom: 40px;
+  pointer-events: auto;
+  transition: opacity 0.5s ease;
+}
+
+.hidden {
+  opacity: 0;
+  pointer-events: none !important;
+}
+
+.glass-btn {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 12px 24px;
+  border-radius: 30px;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.glass-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.glass-btn:active {
+  transform: translateY(0);
+}
+
+/* Beauty Filter */
+.beauty-filter {
+  filter: scaleX(-1) brightness(1.1) contrast(1.05) saturate(1.1) blur(0px) !important;
+  /* 我们可以在 JS 中动态添加更复杂的滤镜或使用 SVG 滤镜来实现磨皮效果 */
+}
+
+/* 磨皮效果的模拟 (简单滤镜组合) */
+.beauty-mode #input_video {
+  filter: scaleX(-1) brightness(1.1) contrast(1.1) saturate(1.2);
+}

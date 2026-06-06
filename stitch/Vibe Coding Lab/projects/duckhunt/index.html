@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Duck Hunt Hand - 手势打鸭子</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pixel-green: #4CAF50;
+            --pixel-blue: #2196F3;
+            --pixel-red: #F44336;
+            --pixel-yellow: #FFEB3B;
+            --bg-color: #000;
+        }
+
+        @font-face {
+            font-family: 'Zpix';
+            src: url('https://cdn.jsdelivr.net/npm/zpix-pixel-font@3.1.10/dist/zpix.ttf') format('truetype');
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            font-family: 'Press Start 2P', 'Zpix', cursive;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* 初始蓝天背景 */
+            background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 70%, #228B22 70%, #228B22 100%);
+        }
+
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: none;
+            z-index: 3;
+            background: transparent;
+        }
+
+        /* 摄像头图层独立美颜 */
+        video {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+            filter: brightness(1.15) contrast(1.05) saturate(1.2) sepia(0.1) blur(0.6px);
+            z-index: 1;
+        }
+
+        /* 补光遮罩 */
+        .beauty-mask {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.2) 100%);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* UI Overlays */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10;
+        }
+
+        .hud {
+            position: absolute;
+            top: 20px;
+            width: 90%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 5%;
+            pointer-events: none;
+            z-index: 5;
+            text-shadow: 2px 2px 0px #000;
+        }
+
+        .hud-item {
+            font-size: 1.5rem;
+        }
+
+        #score-display {
+            color: var(--pixel-yellow);
+        }
+
+        #time-display {
+            color: var(--pixel-red);
+        }
+
+        button {
+            padding: 20px 40px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.2rem;
+            background-color: var(--pixel-green);
+            color: white;
+            border: 4px solid white;
+            cursor: pointer;
+            box-shadow: 6px 6px 0px #000;
+            transition: transform 0.1s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            background-color: #45a049;
+        }
+
+        button:active {
+            transform: translate(3px, 3px);
+            box-shadow: 3px 3px 0px #000;
+        }
+
+        .instructions {
+            font-family: 'Zpix', 'Press Start 2P', cursive;
+            margin-bottom: 30px;
+            text-align: center;
+            line-height: 2;
+            max-width: 80%;
+            font-size: 0.8rem;
+        }
+
+        #loading-screen {
+            background-color: #000;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+
+        /* Reload Overlay Hint */
+        #reload-hint-overlay {
+            background-color: rgba(0, 0, 0, 0.6);
+            pointer-events: none;
+        }
+
+        .reload-text {
+            color: var(--pixel-red);
+            font-size: 2rem;
+            animation: blink 0.5s infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .reload-animation-box {
+            font-size: 5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .reload-icon {
+            display: inline-block;
+            animation: reloadAction 2s infinite;
+        }
+
+        @keyframes breathe {
+
+            0%,
+            100% {
+                transform: scale(1);
+                text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+            }
+
+            50% {
+                transform: scale(1.05);
+                text-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+            }
+        }
+
+        .breath {
+            animation: breathe 3s ease-in-out infinite;
+        }
+
+        .wood-container {
+            background: #8B4513;
+            background-image:
+                repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(0, 0, 0, 0.1) 40px, rgba(0, 0, 0, 0.1) 80px),
+                linear-gradient(to bottom, #A0522D, #8B4513);
+            border: 6px solid #5D2E0B;
+            padding: 20px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), 4px 4px 0 #000;
+            margin-bottom: 30px;
+            color: #FFDAB9;
+            image-rendering: pixelated;
+        }
+
+        .lang-pair {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .icon-box {
+            width: 44px;
+            height: 44px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 3px solid #5D2E0B;
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        /* 像素边角装饰 */
+        .icon-box::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            pointer-events: none;
+        }
+
+        .text-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .lang-pair p {
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .zh {
+            font-family: 'Zpix', monospace;
+            font-size: 0.95rem;
+            color: #fff;
+        }
+
+        .en {
+            font-size: 0.65rem;
+            color: #FFDAB9;
+            opacity: 0.8;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="game-container">
+        <!-- 视频源 (底层) -->
+        <video id="videoElement" playsinline autoplay></video>
+        <canvas id="gameCanvas"></canvas>
+        <div class="beauty-mask"></div>
+
+        <div class="hud">
+            <div class="hud-item" id="score-display">SCORE: 0000</div>
+            <div class="hud-item" id="time-display">TIME: 60</div>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="overlay" style="background: rgba(0, 0, 0, 0.4);">
+            <h1 class="breath" style="color: var(--pixel-yellow); margin-bottom: 40px; text-align: center;">DUCK HUNT
+                HAND</h1>
+            <div class="wood-container instructions" style="min-width: 320px;">
+                <div class="lang-pair">
+                    <div class="icon-box">📸</div>
+                    <div class="text-content">
+                        <p class="zh">允许摄像头权限</p>
+                        <p class="en">Allow camera permissions</p>
+                    </div>
+                </div>
+                <div class="lang-pair">
+                    <div class="icon-box">🎯</div>
+                    <div class="text-content">
+                        <p class="zh">移动 食指指尖 瞄准</p>
+                        <p class="en">Aim with your INDEX FINGER</p>
+                    </div>
+                </div>
+                <div class="lang-pair">
+                    <div class="icon-box">💥</div>
+                    <div class="text-content">
+                        <p class="zh">弯曲大拇指 扣动扳机</p>
+                        <p class="en">BEND THUMB to pull trigger</p>
+                    </div>
+                </div>
+                <div class="lang-pair">
+                    <div class="icon-box">🔁</div>
+                    <div class="text-content">
+                        <p class="zh">枪口指天 快速换弹</p>
+                        <p class="en">Point to SKY to reload</p>
+                    </div>
+                </div>
+            </div>
+            <button id="start-btn" class="breath">START GAME</button>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="overlay hidden">
+            <h1 style="color: var(--pixel-red); margin-bottom: 20px;">GAME OVER</h1>
+            <p id="final-score" style="margin-bottom: 30px;">FINAL SCORE: 0</p>
+            <button id="restart-btn">RETRY</button>
+        </div>
+
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="overlay hidden">
+            <p>INITIALIZING CAMERA & AI...</p>
+        </div>
+
+        <!-- Reload Hint Overlay -->
+        <div id="reload-hint-overlay" class="overlay hidden">
+            <div class="reload-text">RELOAD!</div>
+            <div class="reload-animation-box">
+                <div class="reload-icon"></div>
+            </div>
+            <p style="margin-top:20px; font-size: 0.7rem;">将枪口垂直指向天空</p>
+        </div>
+    </div>
+
+
+    <!-- MediaPipe Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+
+    <script>
+        /**
+         * Constants & Configuration
+         */
+        const SHOOT_RATIO = 0.55;
+        const RELOAD_RATIO = 0.75;
+        const SHOOT_COOLDOWN = 200;
+        const GAME_TIME = 60;
+        const MAX_AMMO = 8;
+        const DUCK_SPAWN_RATE = 1500;
+        const BASE_DUCK_SPEED = 0.5; // 进一步降低基础速度，显著降低难度
+        const DUCK_SIZE = 80; // 增大鸭子尺寸，让准星更容易捕捉
+        const CROSSHAIR_SIZE = 40;
+
+        /**
+         * Game Variables
+         */
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const videoElement = document.getElementById('videoElement');
+        const scoreEl = document.getElementById('score-display');
+        const timeEl = document.getElementById('time-display');
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const loadingScreen = document.getElementById('loading-screen');
+        const finalScoreEl = document.getElementById('final-score');
+
+        let score = 0;
+        let timeLeft = GAME_TIME;
+        let isGameRunning = false;
+        let hands;
+        let handLandmarks = null;
+        let ducks = [];
+        let particles = [];
+        let lastPinchState = false;
+        let gameInterval;
+        let spawnInterval;
+        let lastTime = 0;
+        let targetX = 0, targetY = 0;
+        let currentX = 0, currentY = 0;
+
+        // Visual Feedback States
+        let shakeTime = 0;
+        let recoilY = 0;
+
+        // Audio & Gesture State
+        let audioCtx = null;
+        let isReadyToShoot = true;
+        let lastShootTime = 0;
+        let lastReloadTime = 0;
+
+        // Ammo State
+        let currentAmmo = MAX_AMMO;
+        let ducksHitCount = 0; // 累计击中鸭子数
+        let isWaitingForGunDown = false; // 换弹后必须放平枪口才能开火
+        let reloadHintUI = document.getElementById('reload-hint-overlay');
+        let reloadedVisual = 0; // reloaded 提示持续时间
+
+        // Gesture tracking
+        let normalWristSign = null; // 不再主要使用，但保留以防万一
+
+        /**
+         * Duck Class - Custom Pixel Art Design
+         */
+        class Duck {
+            constructor(speedMultiplier = 1) {
+                this.side = Math.random() > 0.5 ? 'left' : 'right';
+                this.x = this.side === 'left' ? -DUCK_SIZE : canvas.width + DUCK_SIZE;
+                this.y = Math.random() * (canvas.height * 0.5) + 50;
+                this.speedX = (this.side === 'left' ? 1 : -1) * (BASE_DUCK_SPEED + Math.random() * 0.5) * speedMultiplier;
+                this.amplitude = Math.random() * 1.5 + 0.5;
+                this.freq = Math.random() * 0.04 + 0.01;
+                this.angle = 0;
+                this.isDead = false;
+                this.fallSpeed = 8;
+                this.frame = 0;
+                this.frameCount = 0;
+
+                // 不同颜色的鸭子
+                const type = Math.random();
+                if (type < 0.6) {
+                    this.colors = { body: '#4e7a27', head: '#2d5a27', wing: '#6ea03c' }; // 绿色 (标准)
+                } else if (type < 0.85) {
+                    this.colors = { body: '#7a4e27', head: '#5a2d27', wing: '#a06e3c' }; // 棕色
+                } else {
+                    this.colors = { body: '#4e277a', head: '#2d275a', wing: '#6e3ca0' }; // 紫色 (稀有)
+                }
+            }
+
+            update() {
+                if (this.isDead) {
+                    this.y += this.fallSpeed;
+                    return;
+                }
+
+                this.x += this.speedX;
+                this.angle += this.freq;
+                this.y += Math.sin(this.angle) * this.amplitude;
+
+                // Flapping animation logic
+                this.frameCount++;
+                if (this.frameCount % 12 === 0) {
+                    this.frame = 1 - this.frame;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                // Mirror logic
+                if (this.side === 'right' && !this.isDead) {
+                    ctx.scale(-1, 1);
+                } else if (this.isDead) {
+                    ctx.scale(1, -1); // Upside down when falling
+                }
+
+                this.drawPixelDuck(this.frame);
+                ctx.restore();
+            }
+
+            drawPixelDuck(frame) {
+                const p = DUCK_SIZE / 10; // Pixel unit size
+
+                // Body
+                ctx.fillStyle = this.colors.body;
+                ctx.fillRect(-3 * p, -2 * p, 6 * p, 4 * p);
+
+                // Head
+                ctx.fillStyle = this.colors.head;
+                ctx.fillRect(2 * p, -4 * p, 3 * p, 3 * p);
+
+                // Beak
+                ctx.fillStyle = '#f0a000'; // Orange
+                ctx.fillRect(5 * p, -3 * p, 2 * p, 1 * p);
+
+                // Eye
+                ctx.fillStyle = 'white';
+                ctx.fillRect(3.5 * p, -3.5 * p, 1 * p, 1 * p);
+
+                // Wing animation
+                ctx.fillStyle = this.colors.wing;
+                if (frame === 0) {
+                    // Wings up
+                    ctx.fillRect(-1 * p, -5 * p, 3 * p, 4 * p);
+                } else {
+                    // Wings down
+                    ctx.fillRect(-1 * p, 1 * p, 4 * p, 3 * p);
+                }
+
+                // White neck ring
+                ctx.fillStyle = 'white';
+                ctx.fillRect(2 * p, -2 * p, 3 * p, 0.5 * p);
+            }
+
+            checkHit(hx, hy) {
+                if (this.isDead) return false;
+                const dist = Math.sqrt((this.x - hx) ** 2 + (this.y - hy) ** 2);
+                return dist < DUCK_SIZE * 0.8;
+            }
+        }
+
+        /**
+         * Cloud Class - Decorative background
+         */
+        class Cloud {
+            constructor() {
+                this.reset();
+                this.x = Math.random() * canvas.width;
+            }
+            reset() {
+                this.x = -200;
+                this.y = Math.random() * (canvas.height * 0.4);
+                this.speed = Math.random() * 0.3 + 0.1;
+                this.opacity = 0.2 + Math.random() * 0.2; // 增加透明度
+
+                // 云朵由多个方块组成，形成自然的像素感形状
+                this.blocks = [
+                    { dx: 0, dy: 0, w: 80, h: 30 },
+                    { dx: 20, dy: -15, w: 50, h: 25 },
+                    { dx: 45, dy: -5, w: 40, h: 20 },
+                    { dx: -15, dy: 10, w: 40, h: 20 }
+                ];
+            }
+            update() {
+                this.x += this.speed;
+                if (this.x > canvas.width + 100) this.reset();
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                this.blocks.forEach(b => {
+                    ctx.fillRect(this.x + b.dx, this.y + b.dy, b.w, b.h);
+                });
+            }
+        }
+
+        /**
+         * Grass Foreground
+         */
+        function drawGrass() {
+            const grassHeight = 60;
+            const p = 12; // 像素草的大小
+            ctx.fillStyle = 'rgba(34, 139, 34, 0.4)'; // 半透明前景草地
+
+            ctx.fillRect(0, canvas.height - grassHeight, canvas.width, grassHeight);
+
+            // 绘制顶部的锯齿草尖
+            for (let x = 0; x < canvas.width; x += p) {
+                const h = Math.abs(Math.sin(x * 0.1)) * 15 + 10;
+                ctx.fillRect(x, canvas.height - grassHeight - h, p, h);
+            }
+        }
+
+        /**
+         * Explosion Particles
+         */
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 10;
+                this.vy = (Math.random() - 0.5) * 10;
+                this.life = 1.0;
+                this.color = `rgb(255, ${Math.random() * 255}, 0)`;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= 0.05;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.life;
+                ctx.fillRect(this.x, this.y, 6, 6);
+                ctx.globalAlpha = 1.0;
+            }
+        }
+
+        /**
+         * Initialize MediaPipe Hands
+         */
+        async function initMediaPipe() {
+            loadingScreen.classList.remove('hidden');
+
+            hands = new Hands({
+                locateFile: (file) => {
+                    return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+                }
+            });
+
+            hands.setOptions({
+                maxNumHands: 1,
+                modelComplexity: 1,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+            });
+
+            hands.onResults(onResults);
+
+            const camera = new Camera(videoElement, {
+                onFrame: async () => {
+                    await hands.send({ image: videoElement });
+                },
+                width: 1280,
+                height: 720
+            });
+
+            await camera.start();
+            loadingScreen.classList.add('hidden');
+        }
+
+        function onResults(results) {
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const landmarks = results.multiHandLandmarks[0];
+
+                // 1. Posture Validation (手枪姿态强校验)
+                const wrist = landmarks[0];
+                const indexTip = landmarks[8];
+                const middleTip = landmarks[12];
+                const pinkyTip = landmarks[20];
+
+                const getDist = (p1, p2) => Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+
+                const distIndex = getDist(wrist, indexTip);
+                const distMiddle = getDist(wrist, middleTip);
+                const distPinky = getDist(wrist, pinkyTip);
+
+                // 如果食指长度没有明显超过中指或小指，判定为无效姿态，拦截更新
+                if (distIndex < distMiddle || distIndex < distPinky) {
+                    return;
+                }
+
+                handLandmarks = landmarks;
+
+                // 更新目标位置 (Mirrored X)
+                targetX = (1 - indexTip.x) * canvas.width;
+                targetY = indexTip.y * canvas.height;
+
+                // 初始化当前位置 (如果是第一帧识别到手)
+                if (currentX === 0 && currentY === 0) {
+                    currentX = targetX;
+                    currentY = targetY;
+                }
+            } else {
+                handLandmarks = null;
+            }
+        }
+
+        /**
+         * Canvas Setup
+         */
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        /**
+         * Sound Synthesis Functions (Web Audio API)
+         * Enhanced for punchy 8-bit mechanical feel
+         */
+        function playShootSound() {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+
+            // 1. Low-frequency "Thump" (The power of the shot)
+            const osc = audioCtx.createOscillator();
+            const oscGain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.exponentialRampToValueAtTime(30, now + 0.1);
+
+            oscGain.gain.setValueAtTime(0.6, now);
+            oscGain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+
+            osc.connect(oscGain);
+            oscGain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.15);
+
+            // 2. Filtered White Noise (The gunpowder/blast)
+            const bufferSize = audioCtx.sampleRate * 0.2;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+
+            const noiseFilter = audioCtx.createBiquadFilter();
+            noiseFilter.type = 'lowpass';
+            noiseFilter.frequency.setValueAtTime(2000, now);
+
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(0.8, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+
+            noise.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            noiseGain.connect(audioCtx.destination);
+
+            noise.start(now);
+            noise.stop(now + 0.2);
+        }
+
+        function playReloadSound() { // This is the full reload sound
+            playWhipReloadSound();
+        }
+
+        function playTriggerResetSound() { // Tiny click for trigger reset
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1500, now);
+            gain.gain.setValueAtTime(0.05, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.01);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.01);
+        }
+
+        function playEmptySound() {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(2000, now);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.05);
+        }
+
+        function playWhipReloadSound() {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+
+            function playWhip(time) {
+                // White noise burst
+                const bufferSize = audioCtx.sampleRate * 0.05;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const noiseGain = audioCtx.createGain();
+                noiseGain.gain.setValueAtTime(0.5, time);
+                noiseGain.gain.exponentialRampToValueAtTime(0.01, time + 0.05);
+                noise.connect(noiseGain);
+                noiseGain.connect(audioCtx.destination);
+                noise.start(time);
+
+                // Triangle click
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(600, time);
+                gain.gain.setValueAtTime(0.4, time);
+                gain.gain.exponentialRampToValueAtTime(0.01, time + 0.05);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(time);
+                osc.stop(time + 0.05);
+            }
+
+            playWhip(now);
+            playWhip(now + 0.15);
+        }
+
+        /**
+         * Game Core Functions
+         */
+        let clouds = [new Cloud(), new Cloud(), new Cloud(), new Cloud()];
+
+        function startGame() {
+            score = 0;
+            ducksHitCount = 0;
+            timeLeft = GAME_TIME;
+            currentAmmo = MAX_AMMO;
+            ducks = [];
+            particles = [];
+            isGameRunning = true;
+
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+
+            updateHUD();
+
+            if (spawnInterval) clearInterval(spawnInterval);
+            if (gameInterval) clearInterval(gameInterval);
+
+            spawnInterval = setInterval(() => {
+                if (isGameRunning) ducks.push(new Duck());
+            }, DUCK_SPAWN_RATE);
+
+            gameInterval = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateHUD();
+                } else {
+                    endGame();
+                }
+            }, 1000);
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function endGame() {
+            isGameRunning = false;
+            clearInterval(spawnInterval);
+            clearInterval(gameInterval);
+            finalScoreEl.innerText = `FINAL SCORE: ${score}`;
+            gameOverScreen.classList.remove('hidden');
+        }
+
+        function updateHUD() {
+            scoreEl.innerText = `SCORE: ${score.toString().padStart(4, '0')}`;
+            timeEl.innerText = `TIME: ${timeLeft}`;
+        }
+
+        function triggerFire(x, y) {
+            if (currentAmmo <= 0) {
+                playEmptySound();
+                return;
+            }
+
+            currentAmmo--;
+            playShootSound();
+            // 1. Screen Shake
+            shakeTime = 6;
+
+            // 2. Crosshair Recoil
+            recoilY = -30; // initial jump up
+
+            // Create blast particles at crosshair
+            for (let i = 0; i < 20; i++) {
+                particles.push(new Particle(x, y));
+            }
+
+            // Check for hits
+            let hit = false;
+            ducks.forEach(duck => {
+                if (duck.checkHit(x, y)) {
+                    duck.isDead = true;
+                    score += 100;
+                    ducksHitCount++;
+                    hit = true;
+                }
+            });
+
+            if (hit) updateHUD();
+        }
+
+        /**
+         * Main Render Loop
+         */
+        function gameLoop() {
+            // 背景层逻辑始终运行 (云朵、草地)
+
+            // Handle Visual Feedback States
+            if (shakeTime > 0) {
+                const sx = (Math.random() - 0.5) * 15;
+                const sy = (Math.random() - 0.5) * 15;
+                canvas.style.transform = `translate(${sx}px, ${sy}px)`;
+                shakeTime--;
+            } else {
+                canvas.style.transform = 'translate(0, 0)';
+            }
+
+            if (recoilY < 0) {
+                recoilY *= 0.85; // smooth return to zero
+                if (recoilY > -1) recoilY = 0;
+            }
+
+            // 1. Clear Canvas (Transparent background reveals filtered video behind)
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 2. Background Decor (Clouds)
+            clouds.forEach(c => {
+                c.update();
+                c.draw();
+            });
+
+            // 3. Update & Draw Ducks
+            // 运行时显示全部鸭子，非运行时仅作为背景装饰（偶尔出现）
+            for (let i = ducks.length - 1; i >= 0; i--) {
+                ducks[i].update();
+                ducks[i].draw();
+                // Remove out of bounds ducks
+                if (ducks[i].y > canvas.height + DUCK_SIZE || ducks[i].x < -DUCK_SIZE * 2 || ducks[i].x > canvas.width + DUCK_SIZE * 2) {
+                    ducks.splice(i, 1);
+                }
+            }
+
+            // 装饰性鸭子生成逻辑 (即使不运行游戏)
+            if (!isGameRunning && Math.random() < 0.01) {
+                const ambientDuck = new Duck(2.5); // 开始界面的鸭子飞得更快，增加仪式感
+                ducks.push(ambientDuck);
+            }
+
+            // 3.5 Foreground Grass
+            drawGrass();
+
+            // 4. Handle Particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].life <= 0) particles.splice(i, 1);
+            }
+
+            // 5. Handle Hand Gestures
+            if (handLandmarks) {
+                // Lerp 平滑插值更新当前坐标 (跟随速度 0.4)
+                currentX += (targetX - currentX) * 0.4;
+                currentY += (targetY - currentY) * 0.4;
+
+                const hx = currentX;
+                const hy = currentY;
+
+                // Draw Crosshair with Recoil
+                drawCrosshair(hx, hy + recoilY);
+
+                // 1. 获取关键点 (2D 空间，用于比例计算)
+                const wrist = handLandmarks[0];
+                const thumbBase = handLandmarks[2];
+                const thumbTip = handLandmarks[4];
+                const indexBase = handLandmarks[5];
+
+                // 2. 计算基准参考值 (手掌大小: 0 到 5 的距离)
+                const palmSize = Math.sqrt(
+                    Math.pow(wrist.x - indexBase.x, 2) +
+                    Math.pow(wrist.y - indexBase.y, 2)
+                );
+
+                // 3. 计算大拇指伸展度 (4 到 2 的距离)
+                const thumbStretch = Math.sqrt(
+                    Math.pow(thumbTip.x - thumbBase.x, 2) +
+                    Math.pow(thumbTip.y - thumbBase.y, 2)
+                );
+
+                // 4. 计算弯曲比例 (Ratio)
+                const thumbRatio = thumbStretch / palmSize;
+
+                // 5. (Debug info removed as requested)
+
+                // 6. 双阈值开火逻辑 (施密特触发器) + 200ms 冷却
+                const now = Date.now();
+
+                if (thumbRatio < SHOOT_RATIO && isReadyToShoot && isGameRunning && !isWaitingForGunDown) {
+                    triggerFire(hx, hy);
+                    isReadyToShoot = false;
+                    lastShootTime = now;
+                } else if (thumbRatio > RELOAD_RATIO && !isReadyToShoot && (now - lastShootTime > SHOOT_COOLDOWN)) {
+                    playTriggerResetSound();
+                    isReadyToShoot = true;
+                }
+
+                // 7. 街机式“指天”换弹逻辑
+                if (isGameRunning) {
+                    const indexBase = handLandmarks[5];
+                    const indexTip = handLandmarks[8];
+                    const wrist = handLandmarks[0];
+
+                    // 计算食指向量角度和2D长度
+                    const dx = indexTip.x - indexBase.x;
+                    const dy = indexTip.y - indexBase.y;
+                    const fingerLength2D = Math.sqrt(dx * dx + dy * dy);
+                    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+                    // 1. 角度判定：必须接近垂直 (-90度附近)
+                    const isCorrectAngle = angle < -75 && angle > -105;
+
+                    // 2. 长度判定：手指必须舒展开 (防止瞄准镜头时误触)
+                    // 正常 5-8 的长度应占到手掌大小 (0-5) 的 60% 以上才算“指向天空”
+                    // palmSize 是之前计算过的 (wrist 到 indexBase 的距离)
+                    const fingerExtensionRatio = fingerLength2D / palmSize;
+                    const isExtended = fingerExtensionRatio > 0.6;
+
+                    // 3. 高度判定：指尖必须明显高于手腕 (Canvas Y轴 0是顶，1是底)
+                    const isRaised = indexTip.y < wrist.y - 0.2;
+
+                    const isPointingUp = isCorrectAngle && isExtended && isRaised;
+
+                    if (currentAmmo <= 0) {
+                        reloadHintUI.classList.remove('hidden');
+
+                        if (isPointingUp) {
+                            currentAmmo = MAX_AMMO;
+                            playWhipReloadSound();
+                            reloadHintUI.classList.add('hidden');
+                            isWaitingForGunDown = true;
+                            reloadedVisual = 30;
+                        }
+                    } else if (isWaitingForGunDown) {
+                        // 换弹成功后，必须放平枪口 (手指不再指天) 才能继续射击
+                        if (!isPointingUp) {
+                            isWaitingForGunDown = false;
+                        }
+                    }
+
+                    // 提示：换弹成功后需放平枪口
+                    if (isWaitingForGunDown) {
+                        ctx.save();
+                        ctx.fillStyle = 'yellow';
+                        ctx.font = '10px "Press Start 2P"';
+                        ctx.fillText("LOWER GUN TO SHOOT", 20, 160);
+                        ctx.restore();
+                    }
+                }
+            }
+
+            // 8. 绘制弹药 UI 和击中计数器
+            drawAmmoUI();
+            drawHitCounter();
+            if (reloadedVisual > 0) {
+                drawCenterText("RELOADED!", "white");
+                reloadedVisual--;
+            }
+
+            // 始终请求下一帧以维持背景云朵动画
+            requestAnimationFrame(gameLoop);
+        }
+
+        function drawCrosshair(x, y) {
+            // 如果没子弹，虚线准星
+            if (currentAmmo <= 0) {
+                ctx.setLineDash([5, 5]);
+                ctx.strokeStyle = 'gray';
+            } else {
+                ctx.setLineDash([]);
+                ctx.strokeStyle = 'red';
+            }
+            ctx.lineWidth = 4;
+
+            // Outer Circle
+            ctx.beginPath();
+            ctx.arc(x, y, CROSSHAIR_SIZE / 2, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Horizontal line
+            ctx.beginPath();
+            ctx.moveTo(x - CROSSHAIR_SIZE, y);
+            ctx.lineTo(x + CROSSHAIR_SIZE, y);
+            ctx.stroke();
+
+            // Vertical line
+            ctx.beginPath();
+            ctx.moveTo(x, y - CROSSHAIR_SIZE);
+            ctx.lineTo(x, y + CROSSHAIR_SIZE);
+            ctx.stroke();
+
+            // Center dot
+            ctx.fillStyle = currentAmmo <= 0 ? 'gray' : 'red';
+            ctx.fillRect(x - 2, y - 2, 4, 4);
+            ctx.setLineDash([]);
+        }
+
+        function drawAmmoUI() {
+            const margin = 20;
+            const gap = 12;
+            const bW = 10; // bullet width
+
+            ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+            ctx.fillRect(canvas.width - 220, canvas.height - 55, 200, 45);
+
+            for (let i = 0; i < MAX_AMMO; i++) {
+                const active = i < currentAmmo;
+                const bx = canvas.width - margin - (MAX_AMMO - i) * (bW + gap);
+                const by = canvas.height - 42;
+
+                if (active) {
+                    // 8-bit Golden Bullet
+                    ctx.fillStyle = "#FFFACD"; // Tip
+                    ctx.fillRect(bx + 3, by, 4, 4);
+                    ctx.fillStyle = "#FFD700"; // Body
+                    ctx.fillRect(bx + 1, by + 4, 8, 10);
+                    ctx.fillStyle = "#DAA520"; // Base
+                    ctx.fillRect(bx, by + 14, 10, 3);
+                } else {
+                    // 8-bit Empty Bullet (Gray)
+                    ctx.fillStyle = "#999";
+                    ctx.fillRect(bx + 3, by, 4, 4);
+                    ctx.fillStyle = "#666";
+                    ctx.fillRect(bx + 1, by + 4, 8, 10);
+                    ctx.fillStyle = "#333";
+                    ctx.fillRect(bx, by + 14, 10, 3);
+                }
+            }
+        }
+
+        function drawHitCounter() {
+            const bxStart = 25;
+            const by = canvas.height - 35;
+            const gap = 38;
+
+            // 打中了多少只鸭子，就并排绘制多少个像素鸭子
+            for (let i = 0; i < ducksHitCount; i++) {
+                const bx = bxStart + i * gap;
+
+                // 放大版的 8-bit 鸭子图标
+                ctx.fillStyle = "#7a4e27"; // 身体
+                ctx.fillRect(bx, by, 22, 12);
+                ctx.fillStyle = "#5a2d27"; // 头部
+                ctx.fillRect(bx + 10, by - 8, 10, 10);
+                ctx.fillStyle = "#FFD700"; // 喙
+                ctx.fillRect(bx + 20, by - 4, 6, 4);
+            }
+        }
+
+        function drawCenterText(text, color) {
+            ctx.save();
+            ctx.font = '30px "Press Start 2P"';
+            ctx.fillStyle = color;
+            ctx.textAlign = 'center';
+            ctx.shadowColor = 'black';
+            ctx.shadowBlur = 5;
+            ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+            ctx.restore();
+        }
+
+        /**
+         * UI Event Listeners
+         */
+        document.getElementById('start-btn').addEventListener('click', async () => {
+            try {
+                // Initialize AudioContext on user interaction
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    await audioCtx.resume();
+                }
+
+                await initMediaPipe();
+                startGame();
+            } catch (err) {
+                alert('无法启动摄像头: ' + err.message);
+            }
+        });
+
+        document.getElementById('restart-btn').addEventListener('click', () => {
+            startGame();
+        });
+
+        // 页面加装后即刻开始背景动画循环
+        requestAnimationFrame(gameLoop);
+
+    </script>
+</body>
+
+</html>

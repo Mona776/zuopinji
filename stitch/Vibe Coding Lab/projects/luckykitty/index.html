@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barrel Distortion Slot - Advanced Lens Engine</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- START SCREEN OVERLAY -->
+    <div id="start-overlay">
+        <div class="start-content">
+            <img src="https://raw.githubusercontent.com/Mona776/catty/main/%E8%80%81%E8%99%8E%E6%9C%BA22/begin.png" alt="Begin Game" id="begin-img">
+            <button id="start-btn" onclick="startGame()">INSERT TOKEN</button>
+        </div>
+    </div>
+
+    <!-- FISHEYE DEV MOD - CALIBRATION PANEL -->
+
+    <!-- GLOBAL WRAPPER: SUBJECT TO THE SVG DISPLACEMENT MAP -->
+    <div id="fisheye-wrap">
+        <div class="machine-container">
+            <header>
+                <h1 id="status">Ready</h1>
+            </header>
+
+            <div class="slots-wrapper" id="slots-wrapper">
+                <main class="slots">
+                    <div class="reel" id="reel1"><div class="symbol-container"></div></div>
+                    <div class="reel" id="reel2"><div class="symbol-container"></div></div>
+                    <div class="reel" id="reel3"><div class="symbol-container"></div></div>
+                </main>
+
+                <div id="neon-grid-layer" class="neon-grid-layer">
+                    <div class="neon-cell"></div><div class="neon-cell"></div><div class="neon-cell"></div>
+                    <div class="neon-cell"></div><div class="neon-cell"><span class="lose-emoji">^›⩊‹^</span></div><div class="neon-cell"></div>
+                    <div class="neon-cell"></div><div class="neon-cell"></div><div class="neon-cell"></div>
+                </div>
+
+                <div id="machine-shell" class="shell-overlay"></div>
+            </div>
+
+            <!-- JACKPOT CELEBRATION OVERLAY -->
+
+        </div>
+    </div>
+
+    <!-- PURE SVG BARREL DISPLACEMENT FILTER -->
+    <svg style="position: absolute; width: 0; height: 0; pointer-events: none;">
+        <filter id="fisheye-filter" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+            <feImage id="fe-map" href="" result="MAP" preserveAspectRatio="none"/>
+            <feDisplacementMap 
+                in="SourceGraphic" 
+                in2="MAP" 
+                scale="150" 
+                xChannelSelector="R" 
+                yChannelSelector="G" />
+        </filter>
+    </svg>
+
+    <!-- Map Buffer -->
+    <!-- JACKPOT CELEBRATION OVERLAY (OUTSIDE FISHEYE WRAP) -->
+    <div id="jackpot-overlay">
+        <div class="wish-text">
+            现在可以向猫猫许愿了 <br>
+            <span style="font-size: 1.2rem; display: block; margin-top: 10px; opacity: 0.8;">Make a wish to the cat now</span>
+        </div>
+        <div class="rotating-cats"></div>
+        <button id="thanks-cat-btn">Thanks Cat</button>
+    </div>
+
+    <canvas id="displace-canvas" width="1200" height="1200" style="display: none;"></canvas>
+
+    <footer>
+        <button id="spin-btn">SPIN</button>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

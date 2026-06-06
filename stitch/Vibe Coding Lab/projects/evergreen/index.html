@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evergreen</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div id="vignette"></div>
+    
+    <div id="thought-display"></div>
+
+    <div id="ui-layer">
+        <div id="countdown">Loading...</div>
+        <div class="instructions">
+            <p>Drag to Orbit • Keys A-K to Chime</p>
+            <p id="cycle-info">Syncing with Local Time...</p>
+        </div>
+    </div>
+
+    <!-- Developer Controls -->
+    <div id="dev-controls">
+        <div class="dev-header">
+            <span>Dev Controls</span>
+            <button id="dev-toggle">▼</button>
+        </div>
+        <div id="dev-panel">
+            <!-- Populated by JS -->
+            <div class="control-group">
+                <label>Weather Controls</label>
+                <label style="font-size: 0.9em; color: #aaa;">Snow Speed</label>
+                <input type="range" id="snow-speed" min="0" max="5" step="0.1" value="1">
+                
+                <label style="font-size: 0.9em; color: #aaa;">Wind Strength</label>
+                <input type="range" id="wind-strength" min="0" max="0.1" step="0.001" value="0.01">
+                
+                <button id="storm-btn" class="preset-btn" style="width: 100%; margin-top: 5px;">Trigger Storm</button>
+                <button id="gold-snow-btn" class="preset-btn" style="width: 100%; margin-top: 5px; color: #ffd700;">Trigger Gold Snow</button>
+            </div>
+
+            <div class="control-group">
+                <label>Presets</label>
+                <!-- JS will fill this -->
+            </div>
+            <div class="control-group">
+                <label>System</label>
+                <button id="test-audio-btn">Test Audio</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js Core -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <!-- Post-Processing -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+
+    <!-- Game Modules -->
+    <script src="js/gameState.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/weather.js"></script>
+    <script src="js/tree.js"></script>
+    <script src="js/island.js"></script>
+    <script src="js/lanterns.js"></script> 
+    <script src="js/thoughts.js"></script>
+    <script src="js/gifts.js"></script>
+    <script src="js/gingerbread.js"></script>
+    <script src="js/visitor.js"></script>
+    <script src="js/intro.js"></script> <!-- Added Intro Module -->
+    <script src="js/scene.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

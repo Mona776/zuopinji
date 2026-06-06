@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Farm Framework</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="ui">
+            <p>🎮 WASD - Move</p>
+            <p>🖱️ Click - Interact</p>
+            <p>🔧 1/2/3 - Select Tool</p>
+            <p>📦 R-Click - Item Menu</p>
+            <p id="scene-name">Scene: Outdoor Farm</p>
+        </div>
+
+        <!-- Audio Control -->
+        <button id="audio-toggle" class="side-menu-btn" title="Toggle Sound">🔊</button>
+
+        <!-- Farming Toolbar -->
+        <div id="toolbar">
+            <div class="tool-slot" id="tool-hoe">
+                <span class="key-hint">1</span>
+                <div class="icon-img" style="background-image: url('https://static.wefun.ai/assets/0089249a-7670-4791-8174-9e0b5f5423ae.png');"></div>
+                <span class="tool-name">Hoe</span>
+            </div>
+            <div class="tool-slot" id="tool-seed">
+                <span class="key-hint">2</span>
+                <div class="icon-img" style="background-image: url('https://static.wefun.ai/assets/fa48b990-bdd0-40f1-9892-0f721f803bd3.png');"></div>
+                <span class="tool-name">Seed</span>
+                <span id="seed-type-label" class="sub-label">Sunflower</span>
+            </div>
+            <div class="tool-slot" id="tool-water">
+                <span class="key-hint">3</span>
+                <div class="icon-img" style="background-image: url('https://static.wefun.ai/assets/52b46ea8-61b8-45ba-a7cb-d5659c0a1b93.png');"></div>
+                <span class="tool-name">Water</span>
+            </div>
+        </div>
+
+        <!-- Dialogue Overlay -->
+        <div id="dialogue-overlay" style="display: none;">
+            <div class="dialogue-box">
+                <div class="portrait-container">
+                    <img id="dialogue-portrait" src="" alt="Portrait">
+                </div>
+                <div class="text-container">
+                    <h4 id="dialogue-name">You</h4>
+                    <p id="dialogue-text"></p>
+                    <div class="dialogue-hint">SPACE to continue</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/main.js?v=3"></script>
+</body>
+</html>
+<!-- HTML入口文件，包含游戏画布和基本结构 -->

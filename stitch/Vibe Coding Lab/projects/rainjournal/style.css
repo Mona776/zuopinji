@@ -1,0 +1,248 @@
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#060810;font-family:'Share Tech Mono','Courier New',monospace}
+#glCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+
+/* ── 卡片 ── */
+.diary-wrapper{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.diary-card{
+  pointer-events:all;width:min(560px,88vw);
+  display:flex;flex-direction:column;
+  background:rgba(6,10,24,0.58);
+  backdrop-filter:blur(26px) saturate(1.2);-webkit-backdrop-filter:blur(26px) saturate(1.2);
+  border:1px solid rgba(90,190,255,0.10);border-radius:3px;
+  padding:20px 24px 12px;
+  box-shadow:0 0 0 1px rgba(90,190,255,0.04),0 24px 64px rgba(0,0,0,0.72);
+  position:relative;
+}
+.diary-card::before{content:'';position:absolute;top:-1px;left:-1px;width:28px;height:28px;border-top:1px solid rgba(80,220,160,0.55);border-left:1px solid rgba(80,220,160,0.55)}
+.diary-card::after{content:'';position:absolute;bottom:-1px;right:-1px;width:28px;height:28px;border-bottom:1px solid rgba(80,220,160,0.55);border-right:1px solid rgba(80,220,160,0.55)}
+
+/* 顶部拖拽点 */
+.drag-dots{display:flex;justify-content:center;gap:4px;margin-bottom:14px}
+.drag-dots span{width:4px;height:4px;border-radius:50%;background:rgba(140,180,220,0.20)}
+
+.diary-header{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:18px}
+
+/* 标题包裹层 */
+.diary-label-wrap{
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* 可编辑标题 */
+.diary-label{
+  font-size:14px;letter-spacing:.28em;color:rgba(210,230,255,0.80);
+  text-transform:uppercase;
+  outline:none;
+  border:1px solid transparent;
+  border-radius:3px;
+  padding:4px 12px;
+  cursor:text;
+  transition:border-color .2s, background .2s, color .2s;
+  min-width:60px;text-align:center;
+  white-space:nowrap;
+}
+.diary-label:empty::before{
+  content:attr(data-placeholder);
+  color:rgba(210,230,255,0.30);
+}
+/* 悬停时显示可编辑提示 */
+.diary-label:hover{
+  border-color:rgba(90,190,255,0.20);
+  background:rgba(90,190,255,0.05);
+}
+/* 编辑中：高亮边框 */
+.diary-label:focus{
+  border-color:rgba(80,220,160,0.50);
+  background:rgba(80,220,160,0.06);
+  color:rgba(230,245,255,0.95);
+  box-shadow:0 0 0 2px rgba(80,220,160,0.10);
+}
+.diary-meta{display:flex;align-items:center;gap:8px}
+.diary-dot-pulse{width:7px;height:7px;border-radius:50%;background:rgba(80,220,160,0.9);box-shadow:0 0 6px rgba(80,220,160,0.7);animation:pulse 2s ease-in-out infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.82)}}
+.diary-date{font-size:11px;letter-spacing:.14em;color:rgba(80,220,160,0.80)}
+
+/* 内容区 */
+.content-area{position:relative;flex:1}
+.diary-textarea{
+  display:block;width:100%;min-height:280px;
+  background:transparent;border:none;outline:none;resize:none;
+  color:rgba(210,230,255,0.82);font-size:14px;line-height:1.88;
+  letter-spacing:.04em;font-family:inherit;caret-color:rgba(80,220,160,0.9);
+  padding:4px 0;
+}
+.diary-textarea::placeholder{color:rgba(150,180,220,0.20)}
+.draw-canvas{display:block;width:100%;min-height:280px;cursor:crosshair;touch-action:none}
+
+/* 底部工具栏 */
+.diary-footer{
+  display:flex;align-items:center;gap:2px;
+  margin-top:14px;padding-top:12px;
+  border-top:1px solid rgba(90,190,255,0.09);
+}
+.tb-btn{
+  width:40px;height:40px;border-radius:4px;
+  background:transparent;border:none;cursor:pointer;
+  color:rgba(185,210,245,0.68);
+  display:flex;align-items:center;justify-content:center;
+  transition:color .18s,background .18s,transform .12s;flex-shrink:0;
+}
+.tb-btn svg{width:18px;height:18px;pointer-events:none}
+.tb-btn:hover{color:rgba(80,220,160,0.95);background:rgba(80,220,160,0.09)}
+.tb-btn:active{transform:scale(.88)}
+.tb-btn.on{color:rgba(80,220,160,1);filter:drop-shadow(0 0 4px rgba(80,220,160,0.4))}
+.tb-btn.tb-danger{color:rgba(185,210,245,0.68)}
+.tb-btn.tb-danger:hover{color:rgba(255,100,100,0.92);background:rgba(255,90,90,0.08)}
+.tb-sep{flex:1}
+
+/* 状态栏 */
+.status-bar{display:flex;align-items:center;justify-content:space-between;margin-top:6px;padding-top:4px}
+.diary-wc{font-size:10px;letter-spacing:.10em;color:rgba(120,160,200,0.28)}
+.save-status{font-size:10px;letter-spacing:.10em;color:rgba(80,220,160,0.45);transition:opacity .4s}
+.save-status.flash{color:rgba(80,220,160,0.9)}
+
+/* ── 右上角悬浮图标组 ── */
+.top-icons{
+  position:fixed;top:18px;right:18px;z-index:200;
+  display:flex;flex-direction:column;gap:8px;align-items:center;
+}
+.top-icon-btn{
+  width:40px;height:40px;
+  background:rgba(20,28,60,0.82);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(140,180,255,0.28);
+  border-radius:50%;
+  cursor:pointer;
+  color:rgba(180,210,255,0.75);
+  transition:all .22s;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 16px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.top-icon-btn svg{width:17px;height:17px}
+.top-icon-btn:hover{
+  background:rgba(30,44,90,0.92);
+  border-color:rgba(80,220,160,0.60);
+  color:rgba(80,220,160,1);
+  box-shadow:0 4px 20px rgba(0,0,0,0.60), 0 0 12px rgba(80,220,160,0.15);
+}
+/* 激活态（面板打开 / 预览模式） */
+.top-icon-btn.panel-open{
+  background:rgba(80,220,160,0.18);
+  border-color:rgba(80,220,160,0.70);
+  color:rgba(80,220,160,1);
+  box-shadow:0 0 16px rgba(80,220,160,0.25), inset 0 1px 0 rgba(80,220,160,0.15);
+}
+
+/* ── 控制面板（右上角向左下弹出） ── */
+.ctrl-panel{
+  position:fixed;top:60px;right:18px;z-index:190;
+  background:rgba(4,8,22,0.92);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border:1px solid rgba(90,190,255,0.12);border-radius:6px;
+  padding:18px 18px 14px;width:210px;
+  opacity:0;transform:translateY(-6px) scale(0.97);pointer-events:none;
+  transition:opacity .22s cubic-bezier(.16,1,.3,1),transform .22s cubic-bezier(.16,1,.3,1);
+  box-shadow:0 12px 40px rgba(0,0,0,0.60);
+}
+.ctrl-panel.open{opacity:1;transform:translateY(0) scale(1);pointer-events:all}
+.panel-title{font-size:9px;letter-spacing:.20em;color:rgba(80,220,160,0.50);margin-bottom:14px;text-transform:uppercase}
+.panel-sep{height:1px;background:rgba(90,190,255,0.08);margin:12px 0}
+.panel-upload-btn{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:7px;
+  background:rgba(90,190,255,0.07);border:1px solid rgba(90,190,255,0.14);border-radius:3px;
+  color:rgba(160,200,240,0.60);font-size:9px;letter-spacing:.14em;
+  padding:8px 0;cursor:pointer;font-family:inherit;transition:all .18s;margin-bottom:6px;
+  text-transform:uppercase;
+}
+.panel-upload-btn svg{width:12px;height:12px;flex-shrink:0}
+.panel-upload-btn:hover{background:rgba(80,220,160,0.10);border-color:rgba(80,220,160,0.30);color:rgba(80,220,160,0.85)}
+.panel-reset-btn{
+  width:100%;background:transparent;border:1px solid rgba(255,255,255,0.06);border-radius:3px;
+  color:rgba(140,180,220,0.30);font-size:9px;letter-spacing:.14em;
+  padding:7px 0;cursor:pointer;font-family:inherit;transition:all .18s;text-transform:uppercase;
+}
+.panel-reset-btn:hover{border-color:rgba(255,90,90,0.30);color:rgba(255,90,90,0.65)}
+.ctrl-row{display:flex;align-items:center;gap:8px;margin-bottom:13px}
+.ctrl-row label{font-size:9px;letter-spacing:.12em;color:rgba(140,180,220,0.46);width:32px;flex-shrink:0}
+.ctrl-row input[type=range]{flex:1;-webkit-appearance:none;height:2px;border-radius:1px;background:rgba(90,190,255,0.15);outline:none;cursor:pointer}
+.ctrl-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;border-radius:50%;background:rgba(80,220,160,0.85);cursor:pointer;transition:transform .15s}
+.ctrl-row input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.4)}
+.ctrl-val{font-size:9px;color:rgba(80,220,160,0.42);width:20px;text-align:right}
+
+/* ── 画笔浮层 ── */
+.pen-toolbar{
+  position:fixed;bottom:calc(50% - 200px);left:50%;
+  transform:translateX(-50%) translateY(10px);
+  background:rgba(4,8,22,0.90);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border:1px solid rgba(90,190,255,0.10);border-radius:3px;
+  padding:8px 14px;display:flex;align-items:center;gap:12px;
+  opacity:0;pointer-events:none;transition:opacity .22s,transform .22s;z-index:200;
+}
+.pen-toolbar.open{opacity:1;pointer-events:all;transform:translateX(-50%) translateY(0)}
+.pen-toolbar input[type=color]{width:22px;height:22px;border:none;background:none;cursor:pointer;padding:0;border-radius:2px}
+.pen-toolbar input[type=range]{width:80px;-webkit-appearance:none;height:2px;background:rgba(90,190,255,0.20);border-radius:1px;outline:none;cursor:pointer}
+.pen-toolbar input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;border-radius:50%;background:rgba(80,220,160,0.85);cursor:pointer}
+.erase-btn{background:transparent;border:1px solid rgba(90,190,255,0.15);border-radius:2px;color:rgba(140,180,220,0.55);font-size:9px;letter-spacing:.1em;padding:4px 8px;cursor:pointer;font-family:inherit;transition:all .18s}
+.erase-btn svg{width:14px;height:14px;display:block}
+.erase-btn:hover{border-color:rgba(80,220,160,0.4);color:rgba(80,220,160,0.8)}
+
+/* ── 删除确认 ── */
+.confirm-mask{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.55);display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.confirm-mask.show{display:flex}
+.confirm-box{background:rgba(6,10,26,0.95);border:1px solid rgba(255,90,90,0.25);border-radius:4px;padding:28px 32px;min-width:260px;text-align:center}
+.confirm-title{font-size:12px;letter-spacing:.2em;color:rgba(255,90,90,0.85);margin-bottom:10px}
+.confirm-desc{font-size:11px;letter-spacing:.08em;color:rgba(160,190,220,0.50);margin-bottom:22px}
+.confirm-btns{display:flex;gap:12px;justify-content:center}
+.confirm-btns button{background:transparent;border:1px solid rgba(90,190,255,0.18);border-radius:2px;color:rgba(160,190,220,0.55);font-size:10px;letter-spacing:.15em;padding:7px 20px;cursor:pointer;font-family:inherit;transition:all .18s}
+.confirm-btns button.danger{border-color:rgba(255,90,90,0.35);color:rgba(255,90,90,0.75)}
+.confirm-btns button:hover{background:rgba(80,220,160,0.08);border-color:rgba(80,220,160,0.3);color:rgba(80,220,160,0.85)}
+.confirm-btns button.danger:hover{background:rgba(255,90,90,0.10);border-color:rgba(255,90,90,0.6);color:rgba(255,90,90,1)}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:72px;left:50%;transform:translateX(-50%) translateY(8px);background:rgba(4,8,22,0.94);border:1px solid rgba(80,220,160,0.22);border-radius:2px;color:rgba(80,220,160,0.82);font-size:10px;padding:7px 18px;letter-spacing:.12em;opacity:0;pointer-events:none;transition:all .28s;z-index:200;white-space:nowrap;text-transform:uppercase}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── 条目指示器 ── */
+.entry-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 80px;
+  height: 34px;
+  flex-shrink: 0;
+}
+
+.entry-indicator .ei-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(140, 180, 220, 0.28);
+  transition: all 0.25s cubic-bezier(.34,1.56,.64,1);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+/* 当前条目：绿色胶囊 */
+.entry-indicator .ei-dot.active {
+  width: 20px;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(80, 220, 160, 0.88);
+  box-shadow: 0 0 6px rgba(80, 220, 160, 0.45);
+}
+
+/* 紧邻当前的点稍亮 */
+.entry-indicator .ei-dot.near {
+  background: rgba(140, 180, 220, 0.48);
+}
+
+/* 超出显示范围时折叠成更小的点 */
+.entry-indicator .ei-dot.far {
+  width: 3px;
+  height: 3px;
+  background: rgba(140, 180, 220, 0.18);
+}

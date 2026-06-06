@@ -1,0 +1,530 @@
+:root {
+    --bg-color: #050505;
+    --reel-bg: #000;
+    --accent-color: #ffcc00;
+    --mint-green: #AAF0D1; /* Mint Green */
+    --eraser-pink: #F4978E; /* Eraser Pink */
+    --machine-size: 1024px;
+    --hole-size: 508px; 
+    --symbol-height: 169.33px; 
+    --reel-width: 169.33px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%);
+    color: white;
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* THE FISHEYE DISPLACEMENT ENHANCER */
+#fisheye-wrap {
+    position: relative;
+    width: 1200px;
+    height: 1200px;
+    filter: url(#fisheye-filter); 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: visible;
+}
+
+.machine-container {
+    /* Scale is managed here, but coordinates are now locked to 1024 */
+    transform: scale(0.65);
+    transform-origin: center center;
+    text-align: center;
+}
+
+
+
+header h1 {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+    color: #fff; /* White core */
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    /* High-end Multi-layered Neon Text Bloom */
+    text-shadow: 
+        0 0 5px #fff,
+        0 0 10px #fff,
+        0 0 20px var(--accent-color),
+        0 0 40px var(--accent-color),
+        0 0 80px var(--accent-color),
+        0 0 120px rgba(255, 204, 0, 0.5);
+}
+
+.slots-wrapper {
+    position: relative;
+    width: var(--machine-size);
+    height: var(--machine-size);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Layer 2: Main Slots Grid */
+.slots {
+    display: flex;
+    width: var(--hole-size);
+    height: var(--hole-size);
+    /* CRT PHOSPHOR BASE GLOW */
+    background: radial-gradient(circle at center, rgba(10, 40, 20, 0.9) 0%, rgba(0, 5, 2, 0.95) 100%);
+    position: relative;
+    overflow: hidden;
+    top: -5px; /* Re-centering UP to fix large top gap */
+    z-index: 2;
+
+    /* AMBIENT SCREEN HALATION & BLEED */
+    box-shadow: 
+        0 0 60px rgba(57, 255, 20, 0.25), 
+        0 0 120px rgba(57, 255, 20, 0.1),
+        inset 0 0 40px rgba(57, 255, 20, 0.3), 
+        inset 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+/* Layer 3: Individual Neon Grid Cells (Stationary) */
+.neon-grid-layer {
+    position: absolute;
+    /* Resized and Stretched slightly to fill the machine viewfinder perfectly */
+    width: 510px;
+    height: 510px;
+    top: calc(50% - 255px - 5px);
+    left: calc(50% - 255px);
+    z-index: 3;
+    pointer-events: none;
+    
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    
+    /* OUTER FRAME: ERASER PINK CASE */
+    border: 8px solid #fff; /* White intense core */
+    border-radius: 8px;
+    box-shadow: 
+        0 0 5px #fff,
+        0 0 10px #fff,
+        0 0 20px var(--eraser-pink),
+        0 0 40px var(--eraser-pink),
+        0 0 80px var(--eraser-pink),
+        0 0 120px rgba(244, 151, 142, 0.4);
+}
+
+/* INTERNAL DIVIDERS: GREEN GLOW */
+/* THE SKETCH EFFECT: Thin wireframe on Top of Thick Multi-layered Filled Glow */
+.neon-cell {
+    position: relative;
+    margin: 4px;
+    /* FILLED GLOW (Mint Green Multi-layered Core) */
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+    
+    border: 1px solid #fff; /* Bright sharp core */
+    border-radius: 2px;
+    mix-blend-mode: screen; /* Additive Blending for individual cells */
+
+    /* Centering the Failure Emoticon */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    box-shadow: 
+        0 0 2px #fff,
+        0 0 5px #fff,
+        0 0 10px var(--mint-green),
+        0 0 20px var(--mint-green),
+        0 0 40px var(--mint-green),
+        0 0 60px rgba(170, 240, 209, 0.4),
+        inset 0 0 15px rgba(170, 240, 209, 0.4);
+}
+
+/* Specific styling for the winning middle row boxes */
+.jackpot-active .neon-cell:nth-child(4),
+.jackpot-active .neon-cell:nth-child(5),
+.jackpot-active .neon-cell:nth-child(6) {
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 100%);
+    border-color: #fff;
+    box-shadow: 
+        0 0 5px #fff,
+        0 0 10px #fff,
+        0 0 20px var(--eraser-pink),
+        0 0 40px var(--eraser-pink),
+        0 0 60px var(--eraser-pink),
+        0 0 100px rgba(244, 151, 142, 0.6),
+        inset 0 0 30px var(--eraser-pink);
+    animation: flicker-retro 0.4s infinite alternate;
+}
+
+@keyframes flicker-retro {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { 
+        opacity: 1; 
+        filter: brightness(1.5) drop-shadow(0 0 10px #ff0000);
+    }
+    20%, 22%, 24%, 55% { 
+        opacity: 0.1; 
+        filter: brightness(0.5);
+    }
+}
+
+/* FAILURE STATE: RED FLICKERING EMOTICON */
+.neon-cell span.lose-emoji {
+    display: none;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 2.5rem;
+    color: #fff;
+    white-space: nowrap;
+    line-height: 1;
+    z-index: 100;
+}
+
+/* FAILURE STATE (RED) */
+.neon-cell.lose-emoji-active {
+    background: #000 !important;
+    mix-blend-mode: normal !important;
+    border-color: #ff0000;
+    box-shadow: 
+        0 0 5px #fff,
+        0 0 10px #ff0000,
+        0 0 20px #ff0000,
+        0 0 40px #ff0000,
+        0 0 80px rgba(255, 0, 0, 0.6),
+        inset 0 0 20px #ff0000;
+}
+
+.neon-cell.lose-emoji-active span.lose-emoji {
+    text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #ff0000, 0 0 40px #ff0000;
+    display: block;
+    animation: flicker-retro 4s infinite;
+}
+
+/* STANDBY STATE (EMERALD GREEN) */
+.neon-cell.standby-emoji-active {
+    background: #000 !important;
+    mix-blend-mode: normal !important;
+    border-color: #00FF41; /* Emerald Cyber Green */
+    box-shadow: 
+        0 0 5px #fff,
+        0 0 10px #00FF41,
+        0 0 20px #00FF41,
+        0 0 40px #00FF41,
+        0 0 80px rgba(0, 255, 65, 0.4),
+        inset 0 0 20px #00FF41;
+}
+
+.neon-cell.standby-emoji-active span.lose-emoji {
+    text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #00FF41, 0 0 40px #00FF41;
+    display: block;
+    animation: flicker-retro 12s infinite; 
+}
+
+@keyframes flicker-cell {
+    from { opacity: 0.8; box-shadow: 0 0 10px var(--neon-pink); }
+    to { opacity: 1; box-shadow: 0 0 25px var(--neon-pink); }
+}
+
+/* Cleanup old highlight row as we now highlight cells */
+.winning-row-neon {
+    display: none; 
+}
+
+/* Base Slot Components */
+.reel {
+    width: var(--reel-width);
+    height: var(--hole-size);
+    position: relative;
+    overflow: hidden;
+    border-right: 1px solid #111;
+}
+
+.symbol-container {
+    position: absolute;
+    top: 0;
+    width: 100%;
+}
+
+/* IDLE DRIFTING ANIMATION - DIRECTIONAL & FASTER */
+.symbol-container.idle-drifting {
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
+.symbol-container.idle-drifting:nth-of-type(1) { 
+    animation-name: idle-up;
+    animation-duration: 25s; /* Faster */
+}
+.symbol-container.idle-drifting:nth-of-type(2) { 
+    animation-name: idle-down;
+    animation-duration: 25s; /* Faster */
+}
+.symbol-container.idle-drifting:nth-of-type(3) { 
+    animation-name: idle-up-alt;
+    animation-duration: 30s; 
+}
+
+@keyframes idle-up {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-800px); }
+}
+@keyframes idle-down {
+    0% { transform: translateY(-800px); }
+    100% { transform: translateY(0); }
+}
+@keyframes idle-up-alt {
+    0% { transform: translateY(-200px); }
+    100% { transform: translateY(-1000px); }
+}
+
+.symbol {
+    height: var(--symbol-height);
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 5rem; /* Reduced to provide 'breathing room' inside the boxes */
+    user-select: none;
+}
+
+/* Layer 4: Shell Frame Overlay */
+.shell-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    pointer-events: none;
+
+    background-image: url("https://raw.githubusercontent.com/Mona776/catty/main/%E8%80%81%E8%99%8E%E6%9C%BA22/shell.png");
+    background-size: 1024px 1024px;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+footer {
+    position: fixed;
+    bottom: 40px; 
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10001;
+}
+
+footer.hiding {
+    display: none !important;
+}
+
+#spin-btn {
+    background: rgba(0, 255, 65, 0.05); /* Very subtle glass green */
+    color: #00FF41;
+    border: 1px solid #00FF41;
+    border-radius: 2px; /* Sharper, more industrial */
+    padding: 12px 40px;
+    font-size: 1.2rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 6px; /* Wider tracking for premium feel */
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    position: relative;
+    overflow: hidden;
+    /* Neon Aura */
+    box-shadow: 
+        0 0 10px rgba(0, 255, 65, 0.1),
+        inset 0 0 5px rgba(0, 255, 65, 0.1);
+}
+
+#spin-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 65, 0.3), transparent);
+    transition: 0.6s;
+}
+
+#spin-btn:hover:not(:disabled) {
+    background: rgba(0, 255, 65, 0.2);
+    box-shadow: 
+        0 0 20px rgba(0, 255, 65, 0.4),
+        0 0 40px rgba(0, 255, 65, 0.2);
+    letter-spacing: 8px; /* Slightly expand on hover */
+}
+
+#spin-btn:hover:not(:disabled)::before {
+    left: 100%;
+}
+
+#spin-btn:active:not(:disabled) {
+    transform: translateY(2px) scale(0.98);
+}
+
+#spin-btn:disabled {
+    background: #111;
+    color: #333;
+    border-color: #222;
+    box-shadow: none;
+    cursor: default;
+    opacity: 0.6;
+}
+
+/* JACKPOT CELEBRATION OVERLAY */
+#jackpot-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0, 5, 2, 0.6); /* 60% Transparency */
+    z-index: 10000; /* Highest priority */
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(15px);
+    overflow: hidden;
+}
+
+#jackpot-overlay.active {
+    display: flex;
+    animation: fadeIn 0.8s forwards;
+}
+
+#jackpot-overlay .rotating-cats {
+    position: relative;
+    width: 400px; height: 400px;
+    display: flex; justify-content: center; align-items: center;
+    animation: master-rotate 15s linear infinite;
+}
+
+.celebration-cat {
+    position: absolute;
+    width: 100px; height: 100px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 15px #00FF41);
+    opacity: 0; transform: scale(0);
+    animation: 
+        cat-pop-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+        cat-to-circle 1.5s 1.2s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+
+.wish-text {
+    margin-top: 50px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 2.5rem; font-weight: 800; color: #fff;
+    text-align: center;
+    text-shadow: 0 0 10px #fff, 0 0 20px #00FF41, 0 0 40px #00FF41, 0 0 80px #00FF41;
+    opacity: 0;
+    animation: wish-fade-in 1s 2s forwards, wish-pulse 4s 3s infinite ease-in-out;
+}
+
+@keyframes cat-pop-in {
+    0% { opacity: 0; transform: translate(0) scale(0) rotate(-45deg); }
+    100% { opacity: 1; transform: translate(0) scale(1.5) rotate(0); }
+}
+
+@keyframes cat-to-circle {
+    100% {
+        transform: rotate(calc(var(--index) * 72deg)) translateY(-160px) rotate(calc(var(--index) * -72deg)) scale(1);
+    }
+}
+
+@keyframes master-rotate {
+    from { transform: rotate(0deg); } to { transform: rotate(360deg); }
+}
+
+@keyframes wish-fade-in { to { opacity: 1; } }
+
+@keyframes wish-pulse {
+    0%, 100% { text-shadow: 0 0 10px #fff, 0 0 40px #00FF41; transform: scale(1); }
+    50% { text-shadow: 0 0 20px #fff, 0 0 80px #00FF41; transform: scale(1.05); }
+}
+
+#thanks-cat-btn {
+    position: absolute;
+    top: 58%; left: 50%; /* Adjusted down to match the circle's center */
+    transform: translate(-50%, -50%);
+    padding: 12px 25px;
+    background: rgba(0, 0, 0, 0.4);
+    color: #00FF41;
+    border: 1px solid #00FF41;
+    border-radius: 4px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    z-index: 10005; /* Above everything */
+    transition: all 0.3s;
+    opacity: 0; 
+    animation: wish-fade-in 0.5s 2.5s forwards;
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+}
+
+#thanks-cat-btn:hover {
+    background: #00FF41;
+    color: #000;
+    box-shadow: 0 0 25px #00FF41;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* START OVERLAY SYSTEM */
+#start-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: #000;
+    z-index: 20000; /* Above celebration layer */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.8s ease-in-out;
+}
+
+#start-overlay .start-content {
+    position: relative;
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+}
+
+#begin-img {
+    position: absolute;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0.7; /* Slight dim for button contrast */
+    content: url("https://raw.githubusercontent.com/Mona776/catty/main/%E8%80%81%E8%99%8E%E6%9C%BA22/begin.png");
+}
+
+#start-btn {
+    position: relative;
+    z-index: 10;
+    background: rgba(0, 0, 0, 0.7);
+    color: #00FF41;
+    border: 2px solid #00FF41;
+    padding: 20px 60px;
+    font-size: 2rem;
+    font-family: 'Rajdhani', sans-serif;
+    letter-spacing: 10px;
+    cursor: pointer;
+    box-shadow: 0 0 30px rgba(0, 255, 65, 0.4);
+    transition: all 0.3s;
+    text-transform: uppercase;
+    backdrop-filter: blur(5px);
+}
+
+#start-btn:hover {
+    background: #00FF41;
+    color: #000;
+    box-shadow: 0 0 60px #00FF41;
+    transform: scale(1.1);
+}
+
+#start-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}

@@ -1,0 +1,1900 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Battle Cats Tower Defense - RPG Edition</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- 主菜单场景 -->
+  <div id="main-menu-scene" class="scene active">
+    <div class="menu-container">
+      <h1 class="game-title">🐱 Battle Cats TD 🏰</h1>
+      
+      <div class="menu-buttons">
+        <button class="menu-btn primary" id="btn-start-battle">
+          <span class="btn-icon">🎮</span>
+          <span>开始冒险 (Run)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 关卡选择场景 -->
+  <div id="stage-select-scene" class="scene">
+    <div class="scene-header">
+      <button class="back-btn" id="btn-back-from-stage-select">← 返回</button>
+      <h2>选择关卡</h2>
+      <div></div>
+    </div>
+    <div class="stage-list" id="stage-list-container"></div>
+  </div>
+
+  <!-- 卡组编辑场景 -->
+  <div id="deck-edit-scene" class="scene">
+    <div class="scene-header">
+      <button class="back-btn" id="btn-back-from-deck-edit">← 返回</button>
+      <h2>编辑卡组</h2>
+      <div></div>
+    </div>
+    <div class="deck-edit-container">
+      <div class="unit-pool">
+        <h3>可用单位</h3>
+        <div id="unit-pool-container"></div>
+      </div>
+      <div class="deck-preview">
+        <div id="deck-preview-container"></div>
+        <button class="confirm-btn" id="btn-confirm-deck">确认出战</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 战斗场景 -->
+  <div id="battle-scene" class="scene">
+    <div class="game-container">
+      <canvas id="gameCanvas"></canvas>
+      
+      <!-- 顶部 HUD -->
+      <div class="top-hud">
+        <div class="hud-left">
+          <div class="wave-progress-bar-v3" id="waveProgressBar">
+            <!-- 动态生成波次进度条分段 -->
+          </div>
+        </div>
+        
+        <div class="hud-center">
+          <div class="run-progress-container">
+            <div class="run-progress-v2" id="runProgressHUD"></div>
+          </div>
+          <div class="xp-bar-container-v2">
+            <div class="xp-info">
+              <span id="battleLevelText">Lv 1</span>
+              <span id="xpText">0 / 100</span>
+            </div>
+            <div class="xp-bar-v2">
+              <div class="xp-bar-fill-v2" id="xpBarFill"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hud-right">
+          <div class="money-display-v2">
+            <span class="currency-icon">💰</span>
+            <span id="moneyAmount">100</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 移除左侧增益面板 (已整合到底部) -->
+      
+      <!-- 结算面板 (内置在战斗场景中) -->
+      <div id="run-settlement-panel" class="settlement-overlay hidden">
+        <div class="settlement-panel">
+          <h2 id="settlement-title">VICTORY</h2>
+          <div class="settlement-stats">
+            <div class="stat-row">
+              <span>通关基础奖励:</span>
+              <span id="base-reward-gold" class="gold-text">+0</span>
+            </div>
+            <div class="stat-row">
+              <span>剩余金币转换 (1%):</span>
+              <span id="remaining-gold-bonus" class="gold-text">+0</span>
+            </div>
+            <hr>
+            <div class="stat-row total-row">
+              <span>总计获得商店金币:</span>
+              <span id="total-reward-gold" class="gold-text">0</span>
+            </div>
+          </div>
+          <button id="settlement-continue-btn" class="menu-btn">前往商店</button>
+        </div>
+      </div>
+      
+      <div class="controls">
+        <!-- 左侧：道具栏 -->
+        <div class="control-section" style="flex: 1;">
+          <div class="area-title">ITEMS</div>
+          <div class="inventory-bar" id="inventoryBar">
+            <!-- 道具卡片将在这里动态生成 -->
+          </div>
+        </div>
+
+        <!-- 中间：单位召唤区 -->
+        <div class="control-section" style="flex: 2;">
+          <div class="area-title">UNITS</div>
+          <div class="unit-buttons" id="unit-buttons-container">
+            <!-- 动态生成单位按钮 -->
+          </div>
+        </div>
+        
+        <!-- 右侧：增益卡片展示区 -->
+        <div class="control-section" style="flex: 1.2;">
+          <div class="area-title">BUFFS</div>
+          <div class="buffs-display-area" id="buffsDisplayArea">
+            <!-- 动态生成增益卡片 -->
+          </div>
+        </div>
+      </div>
+      
+      <div class="battle-draft-screen" id="battleDraftScreen">
+        <h2 class="battle-draft-title">战斗升级！</h2>
+        <p class="battle-draft-subtitle">选择本局强化（下一关重置）</p>
+        <div class="battle-draft-cards" id="battleDraftCards"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 结算场景 -->
+  <div id="settlement-scene" class="scene">
+    <div class="settlement-container">
+      <div id="settlement-results"></div>
+      <div class="settlement-buttons">
+        <button class="menu-btn" id="btn-retry-stage">
+          <span class="btn-icon">🔄</span>
+          <span>再次挑战</span>
+        </button>
+        <button class="menu-btn primary" id="btn-return-to-menu">
+          <span class="btn-icon">🏠</span>
+          <span>返回主菜单</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 升级商店场景 -->
+  <div id="shop-scene" class="scene">
+    <div class="scene-header">
+      <button class="back-btn" id="btn-back-from-shop">← 返回</button>
+      <h2>升级商店</h2>
+      <div class="shop-gold" id="shop-gold-display">金币: 0</div>
+    </div>
+    <div class="shop-container">
+      <div id="unit-upgrades-container"></div>
+      <div id="base-upgrade-container"></div>
+    </div>
+  </div>
+
+  <!-- 招募场景 -->
+  <div id="recruit-scene" class="scene">
+    <div class="scene-header">
+      <button class="back-btn" id="btn-back-from-recruit">← 返回</button>
+      <h2>招募单位</h2>
+      <div class="recruit-gold" id="recruit-gold-display">金币: 0</div>
+    </div>
+    <div class="recruit-container">
+      <div id="recruit-options-container"></div>
+    </div>
+  </div>
+  
+  <!-- Run 商店场景 -->
+  <div id="run-shop-scene" class="scene">
+    <div class="balatro-shop-layout">
+      <!-- 左侧侧边栏：控制按钮 -->
+      <div class="shop-controls-sidebar">
+        <div class="next-stage-intel-panel">
+          <div class="intel-header">📡 下一关预警</div>
+          <div id="next-stage-preview" class="intel-body">
+            <!-- 动态生成 -->
+          </div>
+        </div>
+        <button class="menu-btn next-round-btn" id="btn-continue-run">
+          <span class="btn-icon">➡️</span>
+          <span>下一个回合</span>
+        </button>
+        <button class="menu-btn reroll-btn" id="btn-reroll-shop">
+          <span class="btn-icon">🔄</span>
+          <span id="reroll-text">重投 $20</span>
+        </button>
+      </div>
+
+      <!-- 右侧主区域：三个货架 -->
+      <div class="shop-main-area">
+        <div class="shop-header-row">
+          <div class="run-map-mini" id="run-map-mini">
+            <!-- 动态生成 1-2-3-4-5 -->
+          </div>
+          <div class="run-gold-display" id="run-gold-display">💰 0</div>
+        </div>
+        
+        <div class="shop-grid-container">
+          <!-- 货架 1: 增益与道具 (顶部大区域) -->
+          <div class="shop-shelf shelf-top" id="shelf-buffs-items">
+            <div class="shelf-title">🎁 增益与道具卡</div>
+            <div class="shelf-items-container" id="items-container-buffs"></div>
+          </div>
+          
+          <!-- 货架 2: 角色升级 (底部左侧) -->
+          <div class="shop-shelf shelf-bottom-left" id="shelf-unit-upgrades">
+            <div class="shelf-title">⭐ 角色强化卡</div>
+            <div class="shelf-items-container" id="items-container-upgrades"></div>
+          </div>
+          
+          <!-- 货架 3: 新单位 (底部右侧) -->
+          <div class="shop-shelf shelf-bottom-right" id="shelf-new-units">
+            <div class="shelf-title">✨ 新单位招募</div>
+            <div class="shelf-items-container" id="items-container-units"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 脚本加载 -->
+  <script src="Base.js"></script>
+  <script src="AudioManager.js?v=21"></script>
+  <script src="Unit.js"></script>
+  <script src="Projectile.js"></script>
+  <script src="LevelData.js"></script>
+  <script src="Game.js"></script>
+  
+  <script>
+    // ============================================
+    // 游戏状态管理
+    // ============================================
+    
+    const GameApp = {
+      currentScene: 'main-menu',
+      currentStage: 1,
+      currentDeck: ['basic'],
+      gameInstance: null,
+      battleUILoop: null,
+      maxUnitsOnField: 20, // 玩家单位上限
+      
+      // ========== 商店品质系统配置 ==========
+      RARITY_CONFIG: {
+        common:    { name: '普通', color: '#ffffff', multiplier: 1.0, priceMult: 1.0, weight: 70, class: 'rarity-common' },
+        rare:      { name: '稀有', color: '#4facfe', multiplier: 1.8, priceMult: 1.4, weight: 20, class: 'rarity-rare' },
+        epic:      { name: '史诗', color: '#bc4ed8', multiplier: 2.8, priceMult: 2.0, weight: 8,  class: 'rarity-epic' },
+        legendary: { name: '传说', color: '#f9d423', multiplier: 4.5, priceMult: 3.0, weight: 2,  class: 'rarity-legendary' }
+      },
+      
+      // 存档管理
+      save: {
+        gold: 2000,
+        unlockedUnits: { 
+          basic: true, tank: true, lizard: true, 
+          assassin: false, shaman: false, berserker: false, engineer: false, titan: false 
+        },
+        unitLevels: { 
+          basic: 1, tank: 1, lizard: 1, 
+          assassin: 1, shaman: 1, berserker: 1, engineer: 1, titan: 1 
+        },
+        baseLevel: 1,
+        unlockedStages: [1],
+        clearedStages: [],
+        selectedDeck: ['basic', 'tank', 'lizard']
+      },
+      
+      // Run 状态管理
+      runState: {
+        active: false,           // 是否在 Run 中
+        currentStage: 1,         // 当前关卡
+        runGold: 0,              // Run 内累积金币
+        runUnlockedUnits: ['basic'],  // Run 内解锁的单位
+        runUnitUpgrades: {       // Run 内的单位升级
+          basic: { hp: 0, atk: 0 },
+          tank: { hp: 0, atk: 0 },
+          lizard: { hp: 0, atk: 0 },
+          assassin: { hp: 0, atk: 0 },
+          shaman: { hp: 0, atk: 0 },
+          berserker: { hp: 0, atk: 0 },
+          engineer: { hp: 0, atk: 0 },
+          titan: { hp: 0, atk: 0 }
+        },
+        runBuffs: {              // Run 内累积的全局 Buff
+          catAttackSpeedBonus: 0,
+          catDamageBonus: 0,
+          catHpBonus: 0,           // 全军生命加成
+          baseMaxHpBonus: 0,
+          baseAutoHeal: 0,         // 基地自动回血（百分比/秒）
+          lizardRangeBonus: 0,
+          startingMoneyBonus: 0,   // 经济类 Buff：开局金币加成
+          moneyGenRateBonus: 0,    // 经济类 Buff：金币生成速度加成
+          conversionRate: 0.05,    // 提升：结算金币转换率（从1%提升至5%）
+          unitLimitBonus: 0,       // 人口上限加成
+          spawnCdReduction: 0,     // 召唤CD缩减（百分比）
+          xpGainMultiplier: 0,     // 经验获取加成（百分比）
+          enemyStatMultiplier: 0,  // 敌方属性削弱（百分比）
+          enemySpeedMultiplier: 0  // 敌方移速削弱（百分比）
+        },
+        inventory: [],           // Run 内的一次性道具 [{id, name, icon, effect}]
+        shopRerollCost: 20,      // 商店刷新初始价格
+        shopItems: []            // 当前商店展示的项目
+      },
+      
+      loadSave() {
+        const saved = localStorage.getItem('battlecats_rpg_save');
+        if (saved) {
+          this.save = { ...this.save, ...JSON.parse(saved) };
+        }
+        console.log('存档加载完成:', this.save);
+      },
+      
+      saveSave() {
+        localStorage.setItem('battlecats_rpg_save', JSON.stringify(this.save));
+      },
+      
+      resetSave() {
+        this.save = {
+          gold: 2000,
+          unlockedUnits: { 
+            basic: true, tank: true, lizard: true, 
+            assassin: false, shaman: false, berserker: false, engineer: false, titan: false 
+          },
+          unitLevels: { 
+            basic: 1, tank: 1, lizard: 1, 
+            assassin: 1, shaman: 1, berserker: 1, engineer: 1, titan: 1 
+          },
+          baseLevel: 1,
+          unlockedStages: [1],
+          clearedStages: [],
+          selectedDeck: ['basic', 'tank', 'lizard']
+        };
+        this.saveSave();
+      },
+      
+      // 开始新的 Run
+      startNewRun() {
+        this.runState = {
+          active: true,
+          currentStage: 1,
+          runGold: 100,  // 初始金币
+          runUnlockedUnits: ['basic', 'tank', 'lizard'],
+          runUnitUpgrades: {
+            basic: { hp: 0, atk: 0 },
+            tank: { hp: 0, atk: 0 },
+            lizard: { hp: 0, atk: 0 },
+            assassin: { hp: 0, atk: 0 },
+            shaman: { hp: 0, atk: 0 },
+            berserker: { hp: 0, atk: 0 },
+            engineer: { hp: 0, atk: 0 },
+            titan: { hp: 0, atk: 0 }
+          },
+          runBuffs: {
+            catAttackSpeedBonus: 0,
+            catDamageBonus: 0,
+            catHpBonus: 0,
+            baseMaxHpBonus: 0,
+            baseAutoHeal: 0,
+            lizardRangeBonus: 0,
+            startingMoneyBonus: 0,
+            moneyGenRateBonus: 0,
+            conversionRate: 0.01,
+            unitLimitBonus: 0,
+            spawnCdReduction: 0,
+            xpGainMultiplier: 0,
+            enemyStatMultiplier: 0,
+            enemySpeedMultiplier: 0
+          },
+          inventory: [],
+          selectedRunCards: [],  // 保存商店购买的增益卡片完整信息
+          shopRerollCost: 20,
+          shopItems: []
+        };
+        this.currentDeck = ['basic', 'tank', 'lizard'];
+        // 直接开始第一关
+        this.startRunBattle(1);
+      },
+      
+      // 结束 Run（清空所有进度）
+      endRun() {
+        this.runState = {
+          active: false,
+          currentStage: 1,
+          runGold: 0,
+          runUnlockedUnits: ['basic', 'tank', 'lizard'],
+          runUnitUpgrades: {
+            basic: { hp: 0, atk: 0 },
+            tank: { hp: 0, atk: 0 },
+            lizard: { hp: 0, atk: 0 },
+            assassin: { hp: 0, atk: 0 },
+            shaman: { hp: 0, atk: 0 },
+            berserker: { hp: 0, atk: 0 },
+            engineer: { hp: 0, atk: 0 },
+            titan: { hp: 0, atk: 0 }
+          },
+          runBuffs: {
+            catAttackSpeedBonus: 0,
+            catDamageBonus: 0,
+            catHpBonus: 0,
+            baseMaxHpBonus: 0,
+            baseAutoHeal: 0,
+            lizardRangeBonus: 0,
+            startingMoneyBonus: 0,
+            moneyGenRateBonus: 0,
+            conversionRate: 0.01,
+            unitLimitBonus: 0,
+            spawnCdReduction: 0,
+            xpGainMultiplier: 0,
+            enemyStatMultiplier: 0,
+            enemySpeedMultiplier: 0
+          },
+          inventory: [],
+          selectedRunCards: [],  // 清空商店购买的增益卡片记录
+          shopRerollCost: 20,
+          shopItems: []
+        };
+        this.selectedBattleCards = [];  // 清空战斗中选择的卡片记录
+      },
+      
+      // 场景切换
+      showScene(sceneName) {
+        console.log('切换场景:', sceneName);
+        
+        // 切换 BGM
+        if (window.audioManager) {
+          if (sceneName === 'battle') {
+            console.log('播放战斗BGM');
+            window.audioManager.startBGM('battle');
+          } else if (sceneName === 'run-shop') {
+            console.log('播放商店BGM');
+            window.audioManager.startBGM('shop');
+          } else if (sceneName === 'settlement' || sceneName === 'main-menu') {
+            // 在这些场景停止BGM，但不要在战斗结束瞬间停止，因为要留给胜利/失败音效
+            window.audioManager.stopBGM();
+          }
+        }
+
+        // 停止战斗UI循环
+        if (this.battleUILoop) {
+          cancelAnimationFrame(this.battleUILoop);
+          this.battleUILoop = null;
+        }
+        
+        // 停止游戏实例
+        if (this.gameInstance && sceneName !== 'battle') {
+          this.gameInstance.isRunning = false;
+          this.gameInstance = null;
+        }
+        
+        // 隐藏所有场景
+        document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+        
+        // 显示目标场景
+        const scene = document.getElementById(sceneName + '-scene');
+        if (scene) {
+          scene.classList.add('active');
+          this.currentScene = sceneName;
+        }
+      },
+      
+      // 初始化
+      init() {
+        console.log('游戏初始化...');
+        
+        // 绑定全局点击事件以初始化音频上下文
+        const initAudio = () => {
+          if (window.audioManager) window.audioManager.init();
+          document.removeEventListener('click', initAudio);
+          document.removeEventListener('touchstart', initAudio);
+        };
+        document.addEventListener('click', initAudio);
+        document.addEventListener('touchstart', initAudio);
+
+        this.loadSave();
+        this.bindEvents();
+        this.updateMainMenu();
+        console.log('游戏初始化完成');
+      },
+      
+      // 绑定所有事件
+      bindEvents() {
+        // 主菜单按钮
+        document.getElementById('btn-start-battle').onclick = () => {
+          // 启动 Run 模式
+          this.startNewRun();
+        };
+        
+        // 关卡选择返回
+        document.getElementById('btn-back-from-stage-select').onclick = () => {
+          this.showScene('main-menu');
+          this.updateMainMenu();
+        };
+        
+        // 卡组编辑返回
+        document.getElementById('btn-back-from-deck-edit').onclick = () => {
+          this.showScene('stage-select');
+          this.renderStageSelect();
+        };
+        
+        // 确认出战
+        document.getElementById('btn-confirm-deck').onclick = () => {
+          if (this.currentDeck.length === 0) {
+            alert('请至少添加一个单位！');
+            return;
+          }
+          this.save.selectedDeck = [...this.currentDeck];
+          this.saveSave();
+          this.startBattle();
+        };
+        
+        // 商店返回
+        document.getElementById('btn-back-from-shop').onclick = () => {
+          this.showScene('main-menu');
+          this.updateMainMenu();
+        };
+        
+        // 招募返回
+        document.getElementById('btn-back-from-recruit').onclick = () => {
+          this.showScene('main-menu');
+          this.updateMainMenu();
+        };
+        
+        // 结算按钮
+        document.getElementById('btn-return-to-menu').onclick = () => {
+          this.showScene('main-menu');
+          this.updateMainMenu();
+        };
+        
+        document.getElementById('btn-retry-stage').onclick = () => {
+          this.showScene('deck-edit');
+          this.renderDeckEdit();
+        };
+        
+        // Run 商店按钮
+        document.getElementById('btn-continue-run').onclick = () => {
+          if (this.runState.active) {
+            this.startRunBattle(this.runState.currentStage);
+          }
+        };
+      },
+      
+      // 更新主菜单
+      updateMainMenu() {
+        const goldDisplay = document.getElementById('menu-gold-display');
+        if (goldDisplay) goldDisplay.textContent = '总金币: ' + this.save.gold;
+      },
+      
+      // 渲染关卡选择
+      renderStageSelect() {
+        const container = document.getElementById('stage-list-container');
+        container.innerHTML = '';
+        
+        const stages = [
+          { id: 1, name: '训练日', sub: 'Training Day', difficulty: '简单', goldReward: 100, waves: 3 },
+          { id: 2, name: '蛇群来袭', sub: 'Snake Attack!', difficulty: '普通', goldReward: 150, waves: 3 },
+          { id: 3, name: '重装出击', sub: 'The Heavy Hitter', difficulty: '困难', goldReward: 200, waves: 3 },
+          { id: 4, name: '攻城战', sub: 'Siege Warfare', difficulty: '精英', goldReward: 300, waves: 3 },
+          { id: 5, name: '全面战争', sub: 'Total War', difficulty: '挑战', goldReward: 500, waves: 4 }
+        ];
+        
+        stages.forEach(stage => {
+          const isUnlocked = this.save.unlockedStages.includes(stage.id);
+          const isCleared = this.save.clearedStages.includes(stage.id);
+          
+          const card = document.createElement('div');
+          card.className = 'stage-card' + (isUnlocked ? '' : ' locked');
+          card.innerHTML = `
+            <div class="stage-header">
+              <h3>${stage.name}</h3>
+              ${isCleared ? '<span class="clear-badge">★ 已通关</span>' : ''}
+            </div>
+            ${stage.sub ? `<p class="stage-subtitle">${stage.sub}</p>` : ''}
+            <div class="stage-info">
+              <p>难度: <span class="difficulty">${stage.difficulty}</span></p>
+              <p>波次: <span class="wave-count">${stage.waves} 波</span></p>
+              <p>奖励: <span class="gold-reward">${stage.goldReward} 金币</span></p>
+              ${isCleared ? '<p class="first-clear-bonus">(首次通关已领取)</p>' : '<p class="first-clear-bonus">首次通关: +50% 金币</p>'}
+            </div>
+            <button class="btn-select-stage ${isUnlocked ? '' : 'disabled'}" ${isUnlocked ? '' : 'disabled'}>
+              ${isUnlocked ? '开始战斗' : '🔒 未解锁'}
+            </button>
+          `;
+          
+          if (isUnlocked) {
+            card.querySelector('.btn-select-stage').onclick = () => {
+              this.currentStage = stage.id;
+              this.showScene('deck-edit');
+              this.renderDeckEdit();
+            };
+          }
+          
+          container.appendChild(card);
+        });
+      },
+      
+      // 渲染卡组编辑
+      renderDeckEdit() {
+        this.currentDeck = [...this.save.selectedDeck];
+        
+        const unitInfo = {
+          basic: { name: '基础猫', icon: '🐱', cost: 30, desc: '平衡型单位' },
+          tank: { name: '坦克猫', icon: '🛡️', cost: 80, desc: '高血量防御单位' },
+          lizard: { name: '蜥蜴猫', icon: '🦎', cost: 250, desc: '远程攻击单位' },
+          assassin: { name: '刺客猫', icon: '🗡️', cost: 150, desc: '快速切入，对低血量敌人造成双倍伤害' },
+          shaman: { name: '萨满猫', icon: '🧙', cost: 180, desc: '中程控制，攻击有概率使敌人静止' },
+          berserker: { name: '狂战士猫', icon: '🪓', cost: 200, desc: '近战 AOE，攻击附带吸血效果' },
+          engineer: { name: '工程师猫', icon: '🛠️', cost: 220, desc: '后勤辅助，持续修理附近友军' },
+          titan: { name: '巨兽猫', icon: '🐘', cost: 500, desc: '终极肉盾，自带高额反伤' }
+        };
+        
+        // 渲染可用单位
+        const poolContainer = document.getElementById('unit-pool-container');
+        poolContainer.innerHTML = '';
+        
+        for (let unitType in unitInfo) {
+          const info = unitInfo[unitType];
+          const isUnlocked = this.save.unlockedUnits[unitType];
+          const level = this.save.unitLevels[unitType] || 1;
+          
+          const card = document.createElement('div');
+          card.className = 'unit-pool-card' + (isUnlocked ? '' : ' locked');
+          card.innerHTML = `
+            <div class="unit-icon">${info.icon}</div>
+            <h4>${info.name}</h4>
+            <p class="unit-level">Lv.${level}</p>
+            <p class="unit-desc">${info.desc}</p>
+            <p class="unit-cost">消耗: ${info.cost}</p>
+            <button class="btn-add-unit ${isUnlocked ? '' : 'disabled'}" ${isUnlocked ? '' : 'disabled'}>
+              ${isUnlocked ? '添加到卡组' : '🔒 未解锁'}
+            </button>
+          `;
+          
+          if (isUnlocked) {
+            card.querySelector('.btn-add-unit').onclick = () => {
+              if (this.currentDeck.length < 8) {
+                this.currentDeck.push(unitType);
+                this.updateDeckPreview();
+              } else {
+                alert('卡组已满！最多8个单位');
+              }
+            };
+          }
+          
+          poolContainer.appendChild(card);
+        }
+        
+        this.updateDeckPreview();
+      },
+      
+      // 更新卡组预览
+      updateDeckPreview() {
+        const container = document.getElementById('deck-preview-container');
+        container.innerHTML = `<h3>当前卡组 (${this.currentDeck.length}/8)</h3>`;
+        
+        const unitInfo = {
+          basic: { name: '基础猫', icon: '🐱' },
+          tank: { name: '坦克猫', icon: '🛡️' },
+          lizard: { name: '蜥蜴猫', icon: '🦎' },
+          assassin: { name: '刺客猫', icon: '🗡️' },
+          shaman: { name: '萨满猫', icon: '🧙' },
+          berserker: { name: '狂战士猫', icon: '🪓' },
+          engineer: { name: '工程师猫', icon: '🛠️' },
+          titan: { name: '巨兽猫', icon: '🐘' }
+        };
+        
+        if (this.currentDeck.length === 0) {
+          container.innerHTML += '<p class="empty-deck">请添加单位到卡组</p>';
+          return;
+        }
+        
+        this.currentDeck.forEach((unitType, index) => {
+          const info = unitInfo[unitType];
+          const slot = document.createElement('div');
+          slot.className = 'deck-slot';
+          slot.innerHTML = `
+            <span class="deck-unit-icon">${info.icon}</span>
+            <span class="deck-unit-name">${info.name}</span>
+            <button class="btn-remove-unit">移除</button>
+          `;
+          slot.querySelector('.btn-remove-unit').onclick = () => {
+            this.currentDeck.splice(index, 1);
+            this.updateDeckPreview();
+          };
+          container.appendChild(slot);
+        });
+      },
+      
+      // 开始战斗（练习模式）
+      startBattle() {
+        this.showScene('battle');
+        
+        const canvas = document.getElementById('gameCanvas');
+        // 传递RPG数据给Game
+        const rpgData = {
+          unlockedUnits: this.save.unlockedUnits,
+          unitLevels: this.save.unitLevels,
+          baseLevel: this.save.baseLevel,
+          runUnlockedUnits: [],
+          runUnitUpgrades: {
+            basic: { hp: 0, atk: 0 },
+            tank: { hp: 0, atk: 0 },
+            lizard: { hp: 0, atk: 0 },
+            assassin: { hp: 0, atk: 0 },
+            shaman: { hp: 0, atk: 0 },
+            berserker: { hp: 0, atk: 0 },
+            engineer: { hp: 0, atk: 0 },
+            titan: { hp: 0, atk: 0 }
+          },
+          runBuffs: {
+            catAttackSpeedBonus: 0,
+            catDamageBonus: 0,
+            catHpBonus: 0,
+            baseMaxHpBonus: 0,
+            baseAutoHeal: 0,
+            lizardRangeBonus: 0,
+            startingMoneyBonus: 0,
+            moneyGenRateBonus: 0,
+            conversionRate: 0.01,
+            unitLimitBonus: 0,
+            spawnCdReduction: 0,
+            xpGainMultiplier: 0,
+            enemyStatMultiplier: 0,
+            enemySpeedMultiplier: 0
+          }
+        };
+        this.gameInstance = new Game(canvas, this.currentStage, this.currentDeck, rpgData);
+        
+        // 设置点金术回调（练习模式不支持）
+        this.gameInstance.onMidasTouch = (amount) => {
+          console.log('点金术在练习模式下不可用');
+        };
+        
+        // 启动战斗UI
+        setTimeout(() => this.setupBattleUI(), 100);
+      },
+      
+      // 开始 Run 战斗
+      startRunBattle(stageId) {
+        this.showScene('battle');
+        
+        // 清空本局战斗选择的卡片
+        this.selectedBattleCards = [];
+        
+        const canvas = document.getElementById('gameCanvas');
+        // 传递 Run 数据给 Game
+        const rpgData = {
+          unlockedUnits: this.save.unlockedUnits,
+          unitLevels: this.save.unitLevels,
+          baseLevel: this.save.baseLevel,
+          runUnlockedUnits: this.runState.runUnlockedUnits,
+          runUnitUpgrades: this.runState.runUnitUpgrades,
+          runBuffs: this.runState.runBuffs
+        };
+        this.gameInstance = new Game(canvas, stageId, this.currentDeck, rpgData);
+        
+        // 设置点金术回调（转换金币到 runGold）
+        this.gameInstance.onMidasTouch = (amount) => {
+          this.runState.runGold += amount;
+          console.log(`点金术: 转换 ${amount} 金币到商店金币，当前商店金币: ${this.runState.runGold}`);
+        };
+        
+        // 启动战斗UI
+        setTimeout(() => this.setupBattleUI(), 100);
+      },
+      
+    // ========== 增益元数据 (用于 UI 显示) ==========
+    BUFF_METADATA: {
+      // 局外增益 (Run Buffs)
+      catDamageBonus:      { name: '合金利爪', icon: '⚔️', unit: '%', isPersistent: true, rarityClass: 'rarity-rare', desc: '所有猫咪攻击力提升' },
+      catHpBonus:          { name: '猫粮储备', icon: '🍖', unit: '%', isPersistent: true, rarityClass: 'rarity-common', desc: '所有猫咪生命值提升' },
+      xpGainMultiplier:    { name: '战争经验', icon: '📖', unit: '%', isPersistent: true, rarityClass: 'rarity-rare', desc: '战斗经验获取速度提升' },
+      baseMaxHpBonus:      { name: '城墙加固', icon: '🏰', unit: '', isPersistent: true, rarityClass: 'rarity-common', desc: '防御塔最大生命值提升' },
+      baseAutoHeal:        { name: '自动维修', icon: '🔧', unit: '%', isPersistent: true, rarityClass: 'rarity-epic', desc: '防御塔每秒自动修复生命值' },
+      startingMoneyBonus:  { name: '风险投资', icon: '💰', unit: '', isPersistent: true, rarityClass: 'rarity-epic', desc: '每场战斗开始时额外获得金币' },
+      conversionRate:      { name: '金币转换', icon: '💎', unit: '%', isPersistent: true, rarityClass: 'rarity-legendary', desc: '未使用的局内金币转换为商店金币的比例提升', minShowValue: 0.011 },
+      unitLimitBonus:      { name: '空间折叠', icon: '🌀', unit: '', isPersistent: true, rarityClass: 'rarity-legendary', desc: '战场上允许存在的单位上限提升' },
+      spawnCdReduction:    { name: '模块化',   icon: '⚙️', unit: '%', isPersistent: true, rarityClass: 'rarity-epic', desc: '所有单位的召唤冷却时间缩短' },
+      enemyStatMultiplier: { name: '弱点力场', icon: '🔻', unit: '%', isPersistent: true, rarityClass: 'rarity-rare', desc: '削弱敌方单位的整体属性' },
+      enemySpeedMultiplier:{ name: '泥泞沼泽', icon: '🐌', unit: '%', isPersistent: true, rarityClass: 'rarity-rare', desc: '降低敌方单位的移动速度' },
+      
+      // 局内增益 (Battle Buffs)
+      catAttackSpeedBonus: { name: '狂热攻速', icon: '⚡', unit: '%', isPersistent: true, rarityClass: 'rarity-rare', desc: '所有猫咪攻击速度提升' },
+      lizardRangeBonus:    { name: '远程狙击', icon: '🎯', unit: '%', isPersistent: true, rarityClass: 'rarity-rare', desc: '蜥蜴猫攻击距离提升' },
+      moveSpeedBonus:      { name: '行军加速', icon: '👟', unit: '%', isPersistent: true, rarityClass: 'rarity-common', desc: '所有单位移动速度提升' },
+      legionBonus:         { name: '军团协同', icon: '👥', unit: '%', isPersistent: true, rarityClass: 'rarity-epic', desc: '场上单位越多，攻击力加成越高' },
+      glassCannonDamage:   { name: '玻璃大炮', icon: '💎', unit: '%', isPersistent: true, rarityClass: 'rarity-epic', desc: '极大提升攻击力，但降低生命值' },
+      reflectDamage:       { name: '荆棘反伤', icon: '🌵', unit: '%', isPersistent: true, rarityClass: 'rarity-rare', desc: '受到攻击时反弹部分伤害' },
+      towerAtkBonus:       { name: '防御强化', icon: '🛡️', unit: '%', isPersistent: true, rarityClass: 'rarity-common', desc: '防御塔反击伤害提升' },
+      itemRecycleChance:   { name: '道具回收', icon: '♻️', unit: '%', isPersistent: true, rarityClass: 'rarity-legendary', desc: '使用道具时有概率不消耗次数' },
+      
+      // 其他可能的局内卡片（标记为非持续性，但为了完整性保留）
+      emergency_reinforcements: { name: '紧急增援', icon: '🆘', unit: '', isPersistent: false, rarityClass: 'rarity-common', desc: '立即召唤一组基础猫咪' },
+      field_repair:            { name: '战地修理', icon: '🛠️', unit: '', isPersistent: false, rarityClass: 'rarity-common', desc: '立即修复防御塔部分生命值' },
+      catnip_fever:            { name: '猫薄荷狂热', icon: '🌿', unit: '', isPersistent: false, rarityClass: 'rarity-rare', desc: '短时间内大幅提升所有单位属性' },
+      battle_spoils:           { name: '战利品', icon: '🎁', unit: '', isPersistent: true, rarityClass: 'rarity-common', desc: '击杀敌人获得的金币提升' }
+    },
+
+    // 一次性增益 ID 列表（不在 UI 显示）
+    ONE_TIME_BUFF_IDS: ['emergency_reinforcements', 'field_repair'],
+
+    // 脏检查标志：只在数据变化时重新渲染
+    _lastBuffsKey: '',
+    _lastInventoryKey: '',
+
+    // 渲染增益列表（带脏检查，避免每帧重建DOM）
+    renderBuffs(game, force) {
+      const buffsContainer = document.getElementById('buffsDisplayArea');
+      if (!buffsContainer) return;
+
+      // 计算当前 buffs 的键值
+      const runCardIds = (this.runState.selectedRunCards || []).filter(c => !this.ONE_TIME_BUFF_IDS.includes(c.id)).map(c => c.id).join(',');
+      const battleCardIds = (this.selectedBattleCards || []).filter(c => !this.ONE_TIME_BUFF_IDS.includes(c.id)).map(c => c.id).join(',');
+      const buffsKey = runCardIds + '|' + battleCardIds;
+
+      // 如果没有变化且不是强制刷新，跳过
+      if (!force && buffsKey === this._lastBuffsKey) {
+        // 道具栏也同样检查
+        this.renderInventoryBar(false);
+        return;
+      }
+      this._lastBuffsKey = buffsKey;
+
+      let html = '';
+      
+      // 1. 渲染局外增益 (Run Buffs)
+      let hasRunBuffs = false;
+      if (this.runState.selectedRunCards && this.runState.selectedRunCards.length > 0) {
+        for (const card of this.runState.selectedRunCards) {
+          if (this.ONE_TIME_BUFF_IDS.includes(card.id)) continue;
+          html += this.createBuffMiniCard(card, true);
+          hasRunBuffs = true;
+        }
+      }
+
+      // 2. 渲染分割线 (如果有局外增益且有局内增益)
+      const hasBattleBuffs = this.selectedBattleCards && this.selectedBattleCards.some(c => !this.ONE_TIME_BUFF_IDS.includes(c.id));
+      
+      if (hasRunBuffs && hasBattleBuffs) {
+        html += `<div class="buff-separator"></div>`;
+      }
+
+      // 渲染局内增益 (Battle Buffs)
+      if (this.selectedBattleCards && this.selectedBattleCards.length > 0) {
+        for (const card of this.selectedBattleCards) {
+          if (this.ONE_TIME_BUFF_IDS.includes(card.id)) continue;
+          html += this.createBuffMiniCard(card, false);
+        }
+      }
+      
+      buffsContainer.innerHTML = html;
+      this.renderInventoryBar(true); // buffs变了，强制刷新道具栏
+    },
+
+    // 创建微型增益卡片 HTML
+    createBuffMiniCard(card, isRunBuff) {
+      return `
+        <div class="buff-card-mini ${isRunBuff ? 'run-buff' : 'battle-buff'} ${card.rarityClass}">
+          <div class="buff-mini-content">
+            <span class="buff-mini-icon">${card.icon}</span>
+          </div>
+          
+          <!-- 悬停显示的完整卡片 -->
+          <div class="buff-card-full-preview battle-draft-card ${card.rarityClass}">
+            <div class="rarity-badge" style="color: ${card.rarityColor || '#fff'}">${card.rarityName || '普通'}</div>
+            <div class="battle-draft-card-icon">${card.icon}</div>
+            <div class="battle-draft-card-title">${card.title}</div>
+            <div class="battle-draft-card-description">${card.description}</div>
+          </div>
+        </div>
+      `;
+    },
+
+      // 设置战斗UI
+      setupBattleUI() {
+        const game = this.gameInstance;
+        if (!game) return;
+        
+        const container = document.getElementById('unit-buttons-container');
+        container.innerHTML = '';
+        
+        const unitInfo = {
+          basic: { icon: '🐱' },
+          tank: { icon: '🛡️' },
+          lizard: { icon: '🦎' },
+          assassin: { icon: '🗡️' },
+          shaman: { icon: '🧙' },
+          berserker: { icon: '🪓' },
+          engineer: { icon: '🛠️' },
+          titan: { icon: '🐘' }
+        };
+
+        // 动态生成当前卡组中的单位按钮
+        this.currentDeck.forEach(unitType => {
+          const info = unitInfo[unitType];
+          const stats = game.playerStats[unitType];
+          const names = {
+            basic: '基础猫', tank: '坦克猫', lizard: '蜥蜴猫', assassin: '刺客猫',
+            shaman: '萨满猫', berserker: '狂战士猫', engineer: '工程师猫', titan: '巨人猫'
+          };
+          const descs = {
+            basic: '全能型战士，适合维持战线',
+            tank: '高血量肉盾，能吸收大量伤害',
+            lizard: '远程射手，攻击距离远伤害高',
+            assassin: '极速近战，对低血量敌人有斩杀效果',
+            shaman: '魔法辅助，攻击有概率控制敌人',
+            berserker: '狂暴战士，攻击带吸血和范围伤害',
+            engineer: '机械专家，能修理友军和基地',
+            titan: '超重型单位，拥有碾压级属性'
+          };
+          
+          const wrapper = document.createElement('div');
+          wrapper.className = 'button-wrapper has-tooltip';
+          wrapper.innerHTML = `
+            <div class="unit-card" id="spawn-${unitType}">
+              <div class="unit-visual">${info.icon}</div>
+              <div class="unit-cost">$${stats.cost}</div>
+              <div class="cooldown-overlay" id="${unitType}-cooldown-overlay"></div>
+            </div>
+            <div class="tooltip-content">
+              <span class="tooltip-title">${names[unitType]}</span>
+              <p class="tooltip-desc">${descs[unitType]}</p>
+              <div class="tooltip-stats">
+                <span>❤️ 生命: ${stats.hp}</span>
+                <span>⚔️ 攻击: ${stats.atk}</span>
+                <span>🎯 射程: ${stats.range}</span>
+              </div>
+            </div>
+          `;
+          
+          wrapper.onclick = () => {
+            const spawnMethods = {
+              basic: () => { if(game.spawnBasicCat()) window.audioManager.playSpawn('small'); },
+              tank: () => { if(game.spawnTankCat()) window.audioManager.playSpawn('large'); },
+              lizard: () => { if(game.spawnLizardCat()) window.audioManager.playSpawn('small'); },
+              assassin: () => { if(game.spawnAssassinCat()) window.audioManager.playSpawn('small'); },
+              shaman: () => { if(game.spawnShamanCat()) window.audioManager.playSpawn('small'); },
+              berserker: () => { if(game.spawnBerserkerCat()) window.audioManager.playSpawn('small'); },
+              engineer: () => { if(game.spawnEngineerCat()) window.audioManager.playSpawn('small'); },
+              titan: () => { if(game.spawnTitanCat()) window.audioManager.playSpawn('large'); }
+            };
+            if (spawnMethods[unitType]) spawnMethods[unitType]();
+          };
+          
+          container.appendChild(wrapper);
+        });
+
+        // 渲染道具栏（初始强制渲染）
+        this.renderInventoryBar(true);
+        
+        // UI更新循环
+        let lastMoney = game.money;
+        const updateUI = () => {
+          if (this.currentScene !== 'battle') return;
+          
+          lastMoney = game.money;
+
+          const playerUnitCount = game.units.filter(u => u.team === 'player').length;
+          const maxUnits = game.maxUnitsOnField;
+          
+          // 更新顶部 HUD
+          const moneyEl = document.getElementById('moneyAmount');
+          moneyEl.textContent = Math.floor(game.money);
+          
+          // 根据金币衰减系数更新视觉反馈
+          if (game.goldDecayMultiplier === 0) {
+            moneyEl.style.color = '#ff4d4d'; // 红色：资源枯竭
+            const hasEnemyUnits = game.units.some(u => u.team === 'enemy');
+            if (!hasEnemyUnits && game.waveManager.enemyQueue.length === 0) {
+              moneyEl.title = '场上已无敌人，停止产生被动金币';
+            } else {
+              moneyEl.title = '资源已枯竭，不再产生被动金币';
+            }
+          } else if (game.goldDecayMultiplier < 1.0) {
+            moneyEl.style.color = '#ffa500'; // 橙色：收益减半
+            moneyEl.title = '战斗时间过长，金币收益减半';
+          } else {
+            moneyEl.style.color = '#ffd32a'; // 默认金色
+            moneyEl.title = '';
+          }
+          
+          // 更新分段式波次进度条
+          const waveBar = document.getElementById('waveProgressBar');
+          if (waveBar && game.waveManager && game.waveManager.totalWaves > 0) {
+            let waveHtml = '';
+            const currentWave = game.waveManager.currentWaveIndex + 1; // 转为 1-indexed
+            const totalWaves = game.waveManager.totalWaves;
+            
+            for (let i = 1; i <= totalWaves; i++) {
+              let statusClass = 'segment-pending';
+              if (i < currentWave || (i === currentWave && game.waveManager.waveCleared)) {
+                statusClass = 'segment-cleared';
+              } else if (i === currentWave && game.waveManager.waveStarted) {
+                statusClass = 'segment-current';
+              }
+              waveHtml += `<div class="wave-segment ${statusClass}"></div>`;
+            }
+            waveBar.innerHTML = waveHtml;
+          }
+
+          // 更新 Run 进度指示器
+          const runProgressHUD = document.getElementById('runProgressHUD');
+          if (runProgressHUD) {
+            let progressHtml = '';
+            const currentStage = this.runState.active ? this.runState.currentStage : this.currentStage;
+            for (let i = 1; i <= 5; i++) {
+              let status = '';
+              if (i < currentStage) status = 'completed';
+              else if (i === currentStage) status = 'active';
+              progressHtml += `<div class="run-progress-dot ${status}"></div>`;
+              if (i < 5) progressHtml += `<span style="color: #555; font-size: 10px;">——</span>`;
+            }
+            runProgressHUD.innerHTML = progressHtml;
+          }
+
+          document.getElementById('battleLevelText').textContent = `Lv ${game.battleLevel} (${playerUnitCount}/${maxUnits})`;
+          document.getElementById('xpText').textContent = `${game.battleXP} / ${game.xpToNextLevel}`;
+          document.getElementById('xpBarFill').style.width = (game.battleXP / game.xpToNextLevel * 100) + '%';
+          
+          // 更新增益列表
+          this.renderBuffs(game);
+          
+          // 更新单位按钮状态和冷却
+          this.currentDeck.forEach(unitType => {
+            const card = document.getElementById(`spawn-${unitType}`);
+            const overlay = document.getElementById(`${unitType}-cooldown-overlay`);
+            const stats = game.unitBaseline[unitType];
+            const canAfford = game.money >= stats.cost;
+            const cooldownPercent = game.getCooldownPercent(unitType);
+            const isCoolingDown = cooldownPercent > 0;
+            
+            if (card) {
+              // 只要不能召唤（冷却中 OR 钱不够），就加 disabled 类
+              if (canAfford && !isCoolingDown) card.classList.remove('disabled');
+              else card.classList.add('disabled');
+            }
+            
+            if (overlay) {
+              // 如果钱不够，遮罩始终 100%
+              // 如果钱够了，遮罩高度等于冷却百分比
+              if (!canAfford) {
+                overlay.style.height = '100%';
+                overlay.style.background = 'rgba(0, 0, 0, 0.6)'; // 钱不够时稍微浅一点的黑色
+              } else {
+                overlay.style.height = (cooldownPercent * 100) + '%';
+                overlay.style.background = 'rgba(0, 0, 0, 0.85)'; // 冷却中用深黑色
+              }
+            }
+          });
+
+          // 检查游戏结束
+          if (game.levelComplete || game.gameOver) {
+            setTimeout(() => this.endBattle(game.levelComplete, game.money), 1500);
+            return;
+          }
+          
+          // 检查升级
+          if (game.levelUpPending) {
+            this.showBattleDraft(game);
+          }
+          
+          this.battleUILoop = requestAnimationFrame(updateUI);
+        };
+        
+        updateUI();
+      },
+      
+      // 显示战斗升级选择
+      showBattleDraft(game) {
+        const screen = document.getElementById('battleDraftScreen');
+        if (screen.classList.contains('active')) return;
+        
+        // 禁用底部控制栏
+        const controls = document.querySelector('.controls');
+        if (controls) controls.classList.add('ui-disabled');
+        
+        const cards = game.generateBattleDraftCards();
+        const container = document.getElementById('battleDraftCards');
+        container.innerHTML = '';
+        
+        cards.forEach(card => {
+          const el = document.createElement('div');
+          el.className = `battle-draft-card ${card.rarityClass}`;
+          
+          el.innerHTML = `
+            <div class="rarity-badge" style="color: ${card.rarityColor}">${card.rarityName}</div>
+            <div class="battle-draft-card-icon">${card.icon}</div>
+            <div class="battle-draft-card-title">${card.title}</div>
+            <div class="battle-draft-card-description">${card.description}</div>
+          `;
+          el.onclick = () => {
+            window.audioManager.playSelect();
+            game.applyBattleDraftCard(card);
+            // 保存选择的卡片完整信息用于 UI 显示
+            if (!this.selectedBattleCards) this.selectedBattleCards = [];
+            this.selectedBattleCards.push(card);
+            
+            // 恢复底部控制栏
+            if (controls) controls.classList.remove('ui-disabled');
+            screen.classList.remove('active');
+          };
+          container.appendChild(el);
+        });
+        
+        screen.classList.add('active');
+      },
+      
+      // 结束战斗
+      endBattle(victory, remainingMoney = 0) {
+        // 移除这里的重复播放，改由 Game.js 在动画开始时立即播放
+        // if (window.audioManager) {
+        //   if (victory) window.audioManager.playVictory();
+        //   else window.audioManager.playDefeat();
+        // }
+
+        if (this.battleUILoop) {
+          cancelAnimationFrame(this.battleUILoop);
+          this.battleUILoop = null;
+        }
+        
+        if (this.gameInstance) {
+          this.gameInstance.isRunning = false;
+          this.gameInstance = null;
+        }
+        
+        // 如果在 Run 模式中
+        if (this.runState.active) {
+          if (victory) {
+            // 胜利：计算奖励
+            const baseGold = [100, 150, 200, 300, 500][this.runState.currentStage - 1] || 100;
+            const remainingBonus = Math.floor(remainingMoney * 0.01);
+            const totalReward = baseGold + remainingBonus;
+            
+            this.runState.runGold += totalReward;
+            
+            // 显示结算界面 (内置在战斗场景)
+            const settlementOverlay = document.getElementById('run-settlement-panel');
+            settlementOverlay.classList.remove('hidden');
+            
+            document.getElementById('settlement-title').textContent = 'VICTORY';
+            document.getElementById('base-reward-gold').textContent = `+${baseGold}`;
+            document.getElementById('remaining-gold-bonus').textContent = `+${remainingBonus} (来自 ${Math.floor(remainingMoney)} 💰)`;
+            document.getElementById('total-reward-gold').textContent = totalReward;
+            
+            const continueBtn = document.getElementById('settlement-continue-btn');
+            continueBtn.textContent = this.runState.currentStage >= 5 ? '查看最终评价' : '前往商店';
+            
+            continueBtn.onclick = () => {
+              settlementOverlay.classList.add('hidden'); // 隐藏面板
+              
+              if (this.runState.currentStage >= 5) {
+                // 全部通关
+                const container = document.getElementById('settlement-results');
+                container.innerHTML = `
+                  <div class="settlement-victory">
+                    <h1 class="victory-title">🎉 全部通关！</h1>
+                    <div class="settlement-stats">
+                      <div class="stat-row">
+                        <span class="stat-label">Run 金币:</span>
+                        <span class="stat-value gold-text-large">${this.runState.runGold}</span>
+                      </div>
+                      <p class="victory-message">恭喜完成所有关卡！</p>
+                    </div>
+                  </div>
+                `;
+                this.showScene('settlement');
+                this.endRun();
+              } else {
+                // 还有后续关卡，进入商店
+                this.runState.currentStage++;
+                this.runState.shopRerollCost = 20; // 重置 Reroll 价格
+                this.generateShopItems(); // 生成新商店内容
+                this.showScene('run-shop');
+                this.renderRunShop();
+              }
+            };
+          } else {
+            // 失败：清空所有进度
+            const settlementOverlay = document.getElementById('run-settlement-panel');
+            settlementOverlay.classList.remove('hidden');
+            
+            document.getElementById('settlement-title').textContent = 'DEFEAT';
+            document.getElementById('base-reward-gold').textContent = '+0';
+            document.getElementById('remaining-gold-bonus').textContent = '所有 Run 进度已清空';
+            document.getElementById('total-reward-gold').textContent = 0;
+            
+            const continueBtn = document.getElementById('settlement-continue-btn');
+            continueBtn.textContent = '返回主菜单';
+            
+            continueBtn.onclick = () => {
+              settlementOverlay.classList.add('hidden');
+              this.showScene('main-menu');
+              this.endRun();
+            };
+          }
+        } else {
+          // 非 Run 模式处理
+          const container = document.getElementById('settlement-results');
+          if (victory) {
+            const baseGold = [100, 150, 200, 300, 500][this.currentStage - 1] || 100;
+            this.save.gold += baseGold;
+            this.saveSave();
+            container.innerHTML = `
+              <div class="settlement-victory">
+                <h1 class="victory-title">🎉 关卡完成！</h1>
+                <div class="settlement-stats">
+                  <div class="stat-row">
+                    <span class="stat-label">关卡:</span>
+                    <span class="stat-value">第${this.currentStage}关</span>
+                  </div>
+                  <div class="stat-row">
+                    <span class="stat-label">基础奖励:</span>
+                    <span class="stat-value gold-text">${baseGold} 金币</span>
+                  </div>
+                </div>
+              </div>
+            `;
+          } else {
+            container.innerHTML = `
+              <div class="settlement-defeat">
+                <h1 class="defeat-title">💀 战斗失败</h1>
+                <div class="settlement-stats">
+                  <div class="stat-row">
+                    <span class="stat-label">关卡:</span>
+                    <span class="stat-value">第${this.currentStage}关</span>
+                  </div>
+                </div>
+              </div>
+            `;
+          }
+          this.showScene('settlement');
+        }
+      },
+      
+      // 渲染商店
+      renderShop() {
+        document.getElementById('shop-gold-display').textContent = '金币: ' + this.save.gold;
+        
+        const unitContainer = document.getElementById('unit-upgrades-container');
+        unitContainer.innerHTML = '<h3>单位升级</h3>';
+        
+        const units = [
+          { id: 'basic', name: '基础猫', icon: '🐱' },
+          { id: 'tank', name: '坦克猫', icon: '🛡️' },
+          { id: 'lizard', name: '蜥蜴猫', icon: '🦎' }
+        ];
+        
+        units.forEach(unit => {
+          if (!this.save.unlockedUnits[unit.id]) return;
+          
+          const level = this.save.unitLevels[unit.id];
+          const cost = Math.floor(100 * Math.pow(level, 1.5));
+          
+          const card = document.createElement('div');
+          card.className = 'shop-item';
+          card.innerHTML = `
+            <div class="shop-item-header">
+              <span class="shop-item-icon">${unit.icon}</span>
+              <h4>${unit.name}</h4>
+            </div>
+            <div class="shop-item-info">
+              <p class="current-level">当前等级: Lv.${level}</p>
+              <p class="upgrade-bonus">攻击力 & 生命值: +${Math.floor((level - 1) * 20)}%</p>
+              <p class="next-level-bonus">下一级: +${Math.floor(level * 20)}%</p>
+            </div>
+            <button class="btn-upgrade ${this.save.gold >= cost ? '' : 'disabled'}">
+              升级 (${cost} 金币)
+            </button>
+          `;
+          
+          card.querySelector('.btn-upgrade').onclick = () => {
+            if (this.save.gold >= cost) {
+              this.save.gold -= cost;
+              this.save.unitLevels[unit.id]++;
+              this.saveSave();
+              this.renderShop();
+            } else {
+              alert('金币不足！');
+            }
+          };
+          
+          unitContainer.appendChild(card);
+        });
+        
+        // 基地升级
+        const baseContainer = document.getElementById('base-upgrade-container');
+        const baseLevel = this.save.baseLevel;
+        const baseCost = Math.floor(100 * Math.pow(baseLevel, 1.5));
+        
+        baseContainer.innerHTML = `
+          <h3>基地升级</h3>
+          <div class="shop-item">
+            <div class="shop-item-header">
+              <span class="shop-item-icon">🏰</span>
+              <h4>基地</h4>
+            </div>
+            <div class="shop-item-info">
+              <p class="current-level">当前等级: Lv.${baseLevel}</p>
+              <p class="upgrade-bonus">基地生命值: +${Math.floor((baseLevel - 1) * 15)}%</p>
+              <p class="upgrade-bonus">初始金币: +$${(baseLevel - 1) * 40}</p>
+              <p class="next-level-bonus">下一级: 生命 +${Math.floor(baseLevel * 15)}% / 初始金币 +$${baseLevel * 40}</p>
+            </div>
+            <button class="btn-upgrade ${this.save.gold >= baseCost ? '' : 'disabled'}" id="btn-upgrade-base">
+              升级 (${baseCost} 金币)
+            </button>
+          </div>
+        `;
+        
+        document.getElementById('btn-upgrade-base').onclick = () => {
+          if (this.save.gold >= baseCost) {
+            this.save.gold -= baseCost;
+            this.save.baseLevel++;
+            this.saveSave();
+            this.renderShop();
+          } else {
+            alert('金币不足！');
+          }
+        };
+      },
+      
+      // 渲染招募
+      renderRecruit() {
+        document.getElementById('recruit-gold-display').textContent = '金币: ' + this.save.gold;
+        
+        const container = document.getElementById('recruit-options-container');
+        container.innerHTML = '';
+        
+        const recruits = [
+          { id: 'tank', name: '坦克猫', icon: '🛡️', cost: 300, desc: '高血量防御单位，适合作为前排吸收伤害' },
+          { id: 'lizard', name: '蜥蜴猫', icon: '🦎', cost: 500, desc: '远程攻击单位，可以从后方输出高伤害' }
+        ];
+        
+        recruits.forEach(unit => {
+          const isUnlocked = this.save.unlockedUnits[unit.id];
+          
+          const card = document.createElement('div');
+          card.className = 'recruit-card' + (isUnlocked ? ' unlocked' : '');
+          card.innerHTML = `
+            <div class="recruit-card-header">
+              <span class="recruit-icon">${unit.icon}</span>
+              <h3>${unit.name}</h3>
+            </div>
+            <p class="recruit-description">${unit.desc}</p>
+            <div class="recruit-stats">
+              <p class="stat-hint">招募后可以在战斗中使用</p>
+              <p class="stat-hint">可以在商店中升级属性</p>
+            </div>
+            ${isUnlocked ? `
+              <div class="already-unlocked">
+                <span class="unlock-badge">✓ 已招募</span>
+              </div>
+            ` : `
+              <button class="btn-recruit ${this.save.gold >= unit.cost ? '' : 'disabled'}">
+                招募 (${unit.cost} 金币)
+              </button>
+            `}
+          `;
+          
+          if (!isUnlocked) {
+            card.querySelector('.btn-recruit').onclick = () => {
+              if (this.save.gold >= unit.cost) {
+                this.save.gold -= unit.cost;
+                this.save.unlockedUnits[unit.id] = true;
+                this.saveSave();
+                this.renderRecruit();
+                alert(unit.name + ' 招募成功！');
+              } else {
+                alert('金币不足！');
+              }
+            };
+          }
+          
+          container.appendChild(card);
+        });
+      },
+      
+      // 渲染 Run 商店（三货架系统）
+      renderRunShop() {
+        const goldDisplay = document.getElementById('run-gold-display');
+        if (goldDisplay) goldDisplay.textContent = `💰 ${this.runState.runGold}`;
+        
+        // 更新下一关情报
+        const nextStageId = this.runState.currentStage; // 注意：此时 currentStage 已经自增过了，指向下一关
+        const nextStagePreview = document.getElementById('next-stage-preview');
+        if (nextStagePreview && typeof LevelData !== 'undefined') {
+          const config = LevelData.getStageConfig(nextStageId);
+          let traitText = '';
+          if (config.modifiers.moveSpeedMultiplier) traitText = '环境：干燥地面 (双方移速+20%)';
+          else if (config.modifiers.damageMultiplier) traitText = '环境：极端高温 (双方攻击+20%)';
+          else if (config.modifiers.windForce) traitText = '环境：变幻狂风 (风向会随时间切换)';
+          else if (stageId === 2) traitText = '机制：自爆威胁 (注意用基础猫排雷)';
+          else if (stageId === 3) traitText = '机制：钢铁护盾 (狂战士是破盾专家)';
+          else if (stageId === 4) traitText = '机制：治愈续航 (刺客猫负责绕后切后排)';
+          else if (stageId === 5) traitText = '机制：全军出击 (综合机制大考)';
+          else if (config.modifiers.allStatsMultiplier) traitText = '环境：神圣加持 (双方全属性+10%)';
+
+          nextStagePreview.innerHTML = `
+            <span class="intel-stage-name">Stage ${nextStageId}: ${config.nameZh}</span>
+            <p>${config.intel}</p>
+            ${traitText ? `<div class="intel-trait">${traitText}</div>` : ''}
+          `;
+        }
+
+        // 更新商店迷你地图
+        const mapMini = document.getElementById('run-map-mini');
+        if (mapMini) {
+          let mapHtml = '';
+          const currentStage = this.runState.currentStage;
+          for (let i = 1; i <= 5; i++) {
+            let status = 'future';
+            if (i < currentStage) status = 'past';
+            else if (i === currentStage) status = 'current';
+            
+            mapHtml += `<div class="map-node ${status}">${i}</div>`;
+            if (i < 5) {
+              const connectorStatus = i < currentStage ? 'active' : '';
+              mapHtml += `<div class="map-connector ${connectorStatus}"></div>`;
+            }
+          }
+          mapMini.innerHTML = mapHtml;
+        }
+
+        // 渲染 Reroll 按钮
+        const rerollBtn = document.getElementById('btn-reroll-shop');
+        const rerollText = document.getElementById('reroll-text');
+        if (rerollBtn) {
+          const cost = this.runState.shopRerollCost;
+          if (rerollText) rerollText.textContent = `重投 $${cost}`;
+          
+          rerollBtn.className = `menu-btn reroll-btn ${this.runState.runGold >= cost ? '' : 'disabled'}`;
+          rerollBtn.onclick = () => this.rerollShop();
+        }
+
+        // 清空三个货架容器
+        const shelfUnits = document.getElementById('items-container-units');
+        const shelfUpgrades = document.getElementById('items-container-upgrades');
+        const shelfBuffs = document.getElementById('items-container-buffs');
+        
+        if (shelfUnits) shelfUnits.innerHTML = '';
+        if (shelfUpgrades) shelfUpgrades.innerHTML = '';
+        if (shelfBuffs) shelfBuffs.innerHTML = '';
+
+        // 按货架分类渲染项目
+        this.runState.shopItems.forEach((item, index) => {
+          const card = this.createShopItemCard(item, index);
+          
+          // 根据货架编号放入对应容器 (注意：现在货架 1 是道具，货架 3 是新单位)
+          if (item.shelf === 1 && shelfUnits) {
+            shelfUnits.appendChild(card);
+          } else if (item.shelf === 2 && shelfUpgrades) {
+            shelfUpgrades.appendChild(card);
+          } else if (item.shelf === 3 && shelfBuffs) {
+            shelfBuffs.appendChild(card);
+          }
+        });
+      },
+      
+      // 创建商店项目卡片
+      createShopItemCard(item, index) {
+        const card = document.createElement('div');
+        let className = `shop-item-card ${item.type}-card`;
+        if (item.purchased) className += ' purchased';
+        if (item.locked) className += ' locked';
+        if (item.rarityClass) className += ` ${item.rarityClass}`;
+        card.className = className;
+        
+        const isUnitCard = item.type === 'new_unit' || item.type === 'unit_full_upgrade';
+        
+        let contentHtml = `
+          ${item.rarityName ? `<div class="rarity-badge" style="color: ${item.rarityColor}">${item.rarityName}</div>` : ''}
+          <div class="item-icon">
+            ${isUnitCard && item.id !== 'all_unlocked' ? `<canvas class="unit-preview-canvas" width="100" height="100"></canvas>` : item.icon}
+          </div>
+          <h4>${item.name}</h4>
+          <p class="item-desc">${item.desc}</p>
+        `;
+
+        if (item.purchased) {
+          contentHtml += `<div class="purchased-badge">已购买</div>`;
+        } else if (item.locked) {
+          contentHtml += `<div class="locked-badge">敬请期待</div>`;
+        } else {
+          const canAfford = this.runState.runGold >= item.cost;
+          contentHtml += `
+            <button class="btn-buy-item ${canAfford ? '' : 'disabled'}">
+              $${item.cost}
+            </button>
+          `;
+        }
+        
+        card.innerHTML = contentHtml;
+        
+        // 如果是单位卡，渲染预览
+        if (isUnitCard && item.id !== 'all_unlocked') {
+          const canvas = card.querySelector('.unit-preview-canvas');
+          if (canvas) {
+            const ctx = canvas.getContext('2d');
+            // 延迟一帧确保 canvas 已挂载
+            requestAnimationFrame(() => {
+              Unit.drawPreview(ctx, item.id, 10, 10, 80);
+            });
+          }
+        }
+
+        if (!item.purchased && !item.locked) {
+          const buyBtn = card.querySelector('.btn-buy-item');
+          if (buyBtn) {
+            buyBtn.onclick = () => this.buyShopItem(index);
+          }
+        }
+        
+        return card;
+      },
+
+      // 生成随机商店项目（三货架系统 + 品质系统）
+      generateShopItems() {
+        const items = [];
+        
+        // ========== 货架 1: 新单位卡 ==========
+        const newUnitPool = [
+          { id: 'assassin', name: '刺客猫', icon: '🗡️', baseCost: 80, type: 'new_unit', shelf: 1, desc: '快速切入，对低血量敌人造成双倍伤害' },
+          { id: 'shaman', name: '萨满猫', icon: '🧙', baseCost: 90, type: 'new_unit', shelf: 1, desc: '中程控制，攻击有概率使敌人静止' },
+          { id: 'berserker', name: '狂战士猫', icon: '🪓', baseCost: 100, type: 'new_unit', shelf: 1, desc: '近战 AOE，攻击附带吸血效果' },
+          { id: 'engineer', name: '工程师猫', icon: '🛠️', baseCost: 100, type: 'new_unit', shelf: 1, desc: '后勤辅助，持续修理附近友军' },
+          { id: 'titan', name: '巨兽猫', icon: '🐘', baseCost: 180, type: 'new_unit', shelf: 1, desc: '终极肉盾，自带高额反伤' }
+        ];
+        
+        // 过滤掉已解锁的单位
+        const availableNewUnits = newUnitPool.filter(u => !this.runState.runUnlockedUnits.includes(u.id));
+        
+        if (availableNewUnits.length > 0) {
+          const selectedUnits = this.randomSample(availableNewUnits, Math.min(2, availableNewUnits.length));
+          selectedUnits.forEach(selectedUnit => {
+            const rarity = this.rollShopRarity();
+            const config = this.RARITY_CONFIG[rarity];
+            const finalCost = Math.round(selectedUnit.baseCost * config.priceMult);
+            
+            items.push({ 
+              ...selectedUnit, 
+              rarity: rarity,
+              rarityName: config.name,
+              rarityColor: config.color,
+              rarityClass: config.class,
+              cost: finalCost, 
+              purchased: false 
+            });
+          });
+        } else {
+          // 如果全部解锁，显示一个占位符
+          items.push({ id: 'all_unlocked', name: '全员集结', icon: '🎖️', cost: 0, type: 'new_unit', shelf: 1, desc: '你已经招募了所有可用的猫咪！', purchased: true, locked: true });
+        }
+        
+        // ========== 货架 2: 角色全属性升级卡 ==========
+        const unitUpgradePool = [
+          { id: 'basic', name: '基础猫: 全面强化', icon: '🐱⭐', baseCost: 50, type: 'unit_full_upgrade', shelf: 2, basePercent: 15, desc: (v) => `基础猫所有属性提升 ${v}%` },
+          { id: 'tank', name: '坦克猫: 全面强化', icon: '🛡️⭐', baseCost: 60, type: 'unit_full_upgrade', shelf: 2, basePercent: 15, desc: (v) => `坦克猫所有属性提升 ${v}%` },
+          { id: 'lizard', name: '蜥蜴猫: 全面强化', icon: '🦎⭐', baseCost: 70, type: 'unit_full_upgrade', shelf: 2, basePercent: 15, desc: (v) => `蜥蜴猫所有属性提升 ${v}%` },
+          { id: 'assassin', name: '刺客猫: 全面强化', icon: '🗡️⭐', baseCost: 80, type: 'unit_full_upgrade', shelf: 2, basePercent: 15, desc: (v) => `刺客猫所有属性提升 ${v}%` },
+          { id: 'shaman', name: '萨满猫: 全面强化', icon: '🧙⭐', baseCost: 80, type: 'unit_full_upgrade', shelf: 2, basePercent: 15, desc: (v) => `萨满猫所有属性提升 ${v}%` },
+          { id: 'berserker', name: '狂战士猫: 全面强化', icon: '🪓⭐', baseCost: 90, type: 'unit_full_upgrade', shelf: 2, basePercent: 15, desc: (v) => `狂战士猫所有属性提升 ${v}%` },
+          { id: 'engineer', name: '工程师猫: 全面强化', icon: '🛠️⭐', baseCost: 90, type: 'unit_full_upgrade', shelf: 2, basePercent: 15, desc: (v) => `工程师猫所有属性提升 ${v}%` },
+          { id: 'titan', name: '巨兽猫: 全面强化', icon: '🐘⭐', baseCost: 120, type: 'unit_full_upgrade', shelf: 2, basePercent: 15, desc: (v) => `巨兽猫所有属性提升 ${v}%` }
+        ];
+        
+        const availableUnitUpgrades = unitUpgradePool.filter(u => this.runState.runUnlockedUnits.includes(u.id));
+        const unitUpgradeCount = Math.min(2, availableUnitUpgrades.length);
+        const selectedUnitBases = this.randomSample(availableUnitUpgrades, unitUpgradeCount);
+        
+        selectedUnitBases.forEach(base => {
+          const rarity = this.rollShopRarity();
+          const config = this.RARITY_CONFIG[rarity];
+          const finalPercent = Math.round(base.basePercent * config.multiplier);
+          const finalCost = Math.round(base.baseCost * config.priceMult);
+          
+          items.push({
+            ...base,
+            rarity: rarity,
+            rarityName: config.name,
+            rarityColor: config.color,
+            rarityClass: config.class,
+            percent: finalPercent,
+            cost: finalCost,
+            desc: base.desc(finalPercent),
+            purchased: false
+          });
+        });
+        
+        // ========== 货架 3: 增益与道具卡 ==========
+        const buffsAndItemsPool = [
+          // === 战略 Buff 卡（11 张，永久效果，适用整个 Run）===
+          // 单位战斗类（Combat）
+          { id: 'catDamageBonus', name: '合金利爪', icon: '⚔️', baseCost: 50, type: 'buff', buffType: 'combat', shelf: 3, baseValue: 0.15, desc: (v) => `全军攻击力 +${Math.round(v * 100)}%` },
+          { id: 'catHpBonus', name: '猫粮储备', icon: '🍖', baseCost: 45, type: 'buff', buffType: 'combat', shelf: 3, baseValue: 0.15, desc: (v) => `全军生命值 +${Math.round(v * 100)}%` },
+          { id: 'xpGainMultiplier', name: '战争经验', icon: '📖', baseCost: 40, type: 'buff', buffType: 'combat', shelf: 3, baseValue: 0.25, desc: (v) => `战斗经验获取 +${Math.round(v * 100)}%` },
+          // 基地防御类（Base Defense）
+          { id: 'baseMaxHpBonus', name: '城墙加固', icon: '🏰', baseCost: 40, type: 'buff', buffType: 'base', shelf: 3, baseValue: 1000, desc: (v) => `防御塔最大生命值 +${v}` },
+          { id: 'baseAutoHeal', name: '自动维修', icon: '🔧', baseCost: 60, type: 'buff', buffType: 'base', shelf: 3, baseValue: 0.005, desc: (v) => `防御塔每秒回复最大生命值的 ${(v * 100).toFixed(1)}%` },
+          // 经济类（Economy）
+          { id: 'startingMoneyBonus', name: '风险投资', icon: '💰', baseCost: 40, type: 'buff', buffType: 'economy', shelf: 3, baseValue: 60, desc: (v) => `每场战斗开局金币 +${v}` },
+          { id: 'conversionRate', name: '金币转换器', icon: '💎', baseCost: 50, type: 'buff', buffType: 'economy', shelf: 3, baseValue: 0.01, desc: (v) => `战斗结算时金币转换率 +${(v * 100).toFixed(0)}%（当前总转换率：${((this.runState.runBuffs.conversionRate + v) * 100).toFixed(0)}%）` },
+          // 生产与限制类（Production）
+          { id: 'unitLimitBonus', name: '空间折叠', icon: '🌀', baseCost: 60, type: 'buff', buffType: 'production', shelf: 3, baseValue: 5, desc: (v) => `单位数量上限 +${v}（当前上限：${20 + (this.runState.runBuffs.unitLimitBonus || 0)}）` },
+          { id: 'spawnCdReduction', name: '模块化生产', icon: '⚙️', baseCost: 45, type: 'buff', buffType: 'production', shelf: 3, baseValue: 0.1, desc: (v) => `所有单位召唤冷却时间 -${Math.round(v * 100)}%` },
+          // 敌方削弱类（Enemy Debuff）
+          { id: 'enemyStatMultiplier', name: '弱点力场', icon: '🔻', baseCost: 60, type: 'buff', buffType: 'enemy', shelf: 3, baseValue: 0.1, desc: (v) => `所有敌方单位属性（生命、攻击、范围）-${Math.round(v * 100)}%` },
+          { id: 'enemySpeedMultiplier', name: '泥泞沼泽', icon: '🐌', baseCost: 50, type: 'buff', buffType: 'enemy', shelf: 3, baseValue: 0.15, desc: (v) => `所有敌方单位移动速度 -${Math.round(v * 100)}%` },
+          
+          // === 一次性道具卡（5 张，战斗中使用）===
+          { id: 'cannon_strike', name: '加农炮轰击', icon: '💣', baseCost: 60, type: 'item', buffType: 'consumable', shelf: 3, desc: (v) => '战斗中使用，对全屏敌人造成大量伤害并击退' },
+          { id: 'time_freeze', name: '时空冻结', icon: '❄️', baseCost: 70, type: 'item', buffType: 'consumable', shelf: 3, desc: (v) => '战斗中使用，使所有敌人停止行动 5 秒' },
+          { id: 'instant_repair', name: '紧急维修', icon: '🛠️', baseCost: 50, type: 'item', buffType: 'consumable', shelf: 3, desc: (v) => '战斗中使用，立即修复防御塔 30% 生命值' },
+          { id: 'catnip_fever', name: '猫薄荷狂热', icon: '🌿', baseCost: 65, type: 'item', buffType: 'consumable', shelf: 3, desc: (v) => '战斗中使用，所有己方单位伤害翻倍 8 秒' },
+          { id: 'midas_touch', name: '点金术', icon: '✨', baseCost: 80, type: 'item', buffType: 'consumable', shelf: 3, desc: (v) => '战斗中使用，当前金币余额的 50% 转化为商店金币' },
+          { id: 'emergency_mobilization', name: '紧急动员', icon: '⚡', baseCost: 75, type: 'item', buffType: 'consumable', shelf: 3, desc: (v) => '战斗中使用，金币生成速度提升至 3 倍，持续 10 秒' }
+        ];
+        
+        const buffsAndItemsCount = 5;
+        const selectedBuffBases = this.randomSample(buffsAndItemsPool, buffsAndItemsCount);
+        
+        selectedBuffBases.forEach(base => {
+          const rarity = this.rollShopRarity();
+          const config = this.RARITY_CONFIG[rarity];
+          let finalValue = base.baseValue;
+          
+          if (base.type === 'buff') {
+            // 百分比属性（不四舍五入）：包含 Rate/Speed/Damage/Range/Multiplier/Heal/Reduction 的 Bonus
+            const isPercentage = base.id.includes('Rate') || 
+                                 base.id.includes('Speed') || 
+                                 base.id.includes('Multiplier') ||
+                                 base.id.includes('Heal') ||
+                                 base.id.includes('Reduction') ||
+                                 (base.id === 'catDamageBonus') || 
+                                 (base.id === 'catHpBonus') || 
+                                 (base.id === 'lizardRangeBonus') ||
+                                 (base.id === 'conversionRate');
+            
+            finalValue = isPercentage
+              ? base.baseValue * config.multiplier
+              : Math.round(base.baseValue * config.multiplier);
+          }
+          
+          const finalCost = Math.round(base.baseCost * config.priceMult);
+          
+          items.push({
+            ...base,
+            rarity: rarity,
+            rarityName: config.name,
+            rarityColor: config.color,
+            rarityClass: config.class,
+            value: finalValue,
+            cost: finalCost,
+            desc: base.desc(finalValue),
+            purchased: false
+          });
+        });
+        
+        this.runState.shopItems = items;
+      },
+      
+      // 随机抽取商店品质
+      rollShopRarity() {
+        const totalWeight = Object.values(this.RARITY_CONFIG).reduce((sum, c) => sum + (c.weight || 0), 0);
+        let random = Math.random() * totalWeight;
+        
+        for (const [key, config] of Object.entries(this.RARITY_CONFIG)) {
+          random -= config.weight;
+          if (random <= 0) return key;
+        }
+        return 'common';
+      },
+      
+      // 工具方法：从数组中随机抽取n个元素（不重复）
+      randomSample(array, n) {
+        const shuffled = array.slice().sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, n);
+      },
+
+      // 购买商店项目
+      buyShopItem(index) {
+        const item = this.runState.shopItems[index];
+        if (this.runState.runGold < item.cost || item.purchased || item.locked) return;
+
+        window.audioManager.playSelect();
+        this.runState.runGold -= item.cost;
+        item.purchased = true;
+
+        // 应用效果
+        if (item.type === 'new_unit') {
+          // 解锁新单位
+          if (!this.runState.runUnlockedUnits.includes(item.id)) {
+            this.runState.runUnlockedUnits.push(item.id);
+            // 同时加入当前出战卡组（如果卡组未满）
+            if (this.currentDeck.length < 8) {
+              this.currentDeck.push(item.id);
+            }
+            alert(`🎉 成功招募：${item.name}！已加入卡组。`);
+          }
+        } else if (item.type === 'unit_full_upgrade') {
+          // 角色全属性升级（百分比提升）
+          const unitId = item.id;
+          const percent = item.percent / 100;
+          if (!this.runState.runUnitUpgrades[unitId].percentBonus) {
+            this.runState.runUnitUpgrades[unitId].percentBonus = 0;
+          }
+          this.runState.runUnitUpgrades[unitId].percentBonus += percent;
+        } else if (item.type === 'buff') {
+          // 全局 Buff（经济类或属性类）
+          this.runState.runBuffs[item.id] += item.value;
+          // 保存卡片完整信息用于 UI 显示
+          if (!this.runState.selectedRunCards) this.runState.selectedRunCards = [];
+          this.runState.selectedRunCards.push({
+            id: item.id,
+            icon: item.icon,
+            title: item.name,
+            description: typeof item.desc === 'function' ? item.desc(item.value) : item.desc,
+            rarityName: item.rarityName || '普通',
+            rarityColor: item.rarityColor || '#fff',
+            rarityClass: item.rarityClass || 'rarity-common',
+            value: item.value
+          });
+        } else if (item.type === 'item') {
+          // 一次性道具，存入背包
+          this.runState.inventory.push({
+            id: item.id,
+            name: item.name,
+            icon: item.icon,
+            desc: item.desc
+          });
+        }
+
+        this.renderRunShop();
+      },
+
+      // 刷新商店
+      rerollShop() {
+        if (this.runState.runGold < this.runState.shopRerollCost) return;
+        
+        window.audioManager.playReroll();
+        this.runState.runGold -= this.runState.shopRerollCost;
+        this.runState.shopRerollCost = Math.floor(this.runState.shopRerollCost * 1.5);
+        
+        this.generateShopItems();
+        this.renderRunShop();
+      },
+
+      // 购买 Run 招募 (已废弃，保留空函数以防报错)
+      buyRunRecruit(unitId, cost) {},
+      
+      // 购买 Run 升级 (已废弃，保留空函数以防报错)
+      buyRunUpgrade(unitId, stat, value, cost) {
+        if (this.runState.runGold < cost) {
+          alert('金币不足！');
+          return;
+        }
+        
+        this.runState.runGold -= cost;
+        this.runState.runUnitUpgrades[unitId][stat] += value;
+        
+        const statNames = {
+          hp: '生命值',
+          atk: '攻击力'
+        };
+        
+        const unitNames = {
+          basic: '基础猫',
+          tank: '坦克猫',
+          lizard: '蜥蜴猫'
+        };
+        
+        alert(`${unitNames[unitId]} ${statNames[stat]} +${value}！`);
+        this.renderRunShop();
+      },
+      
+      // 渲染道具栏（带脏检查，避免每帧重建DOM导致点击/悬停失效）
+      renderInventoryBar(force) {
+        const inventoryBar = document.getElementById('inventoryBar');
+        if (!inventoryBar) return;
+        
+        // 计算当前道具的键值
+        const inventoryKey = this.runState.inventory.map(item => item.id).join(',');
+        
+        // 如果没有变化且不是强制刷新，跳过
+        if (!force && inventoryKey === this._lastInventoryKey) return;
+        this._lastInventoryKey = inventoryKey;
+        
+        inventoryBar.innerHTML = '';
+        
+        // 渲染每个道具
+        this.runState.inventory.forEach((item, index) => {
+          const itemCard = document.createElement('div');
+          itemCard.className = 'inventory-item has-tooltip';
+          itemCard.innerHTML = `
+            <div class="inventory-item-icon">${item.icon}</div>
+            <div class="inventory-item-name">${item.name}</div>
+            <div class="tooltip-content">
+              <span class="tooltip-title">${item.name}</span>
+              <p class="tooltip-desc">${typeof item.desc === 'function' ? item.desc() : item.desc}</p>
+              <p style="color: #90EE90; font-size: 10px; margin-top: 5px;">💡 点击立即使用</p>
+            </div>
+          `;
+          
+          // 使用箭头函数确保 this 指向 GameApp
+          itemCard.onclick = (e) => {
+            e.stopPropagation();
+            console.log('点击道具:', item.name);
+            this.useInventoryItem(index);
+          };
+          
+          inventoryBar.appendChild(itemCard);
+        });
+      },
+      
+      // 使用道具
+      useInventoryItem(index) {
+        console.log('尝试使用道具, 索引:', index);
+        const item = this.runState.inventory[index];
+        if (!item) {
+          console.log('道具不存在');
+          return;
+        }
+        if (!this.gameInstance || !this.gameInstance.isRunning) {
+          console.log('游戏未在运行，无法使用道具');
+          return;
+        }
+        
+        console.log('应用道具效果:', item.id);
+        
+        // 计算持续时间加成
+        const durationBonus = 1 + (this.gameInstance.battleBuffs.skillDurationBonus || 0);
+        
+        // 根据道具 ID 应用效果
+        if (item.id === 'cannon_strike') {
+          this.gameInstance.useCannonStrike();
+        } else if (item.id === 'time_freeze') {
+          const baseDuration = 300; // 5秒 = 300帧
+          const finalDuration = Math.floor(baseDuration * durationBonus);
+          this.gameInstance.useTimeFreeze(finalDuration);
+        } else if (item.id === 'instant_repair') {
+          this.gameInstance.useInstantRepair(0.3);
+        } else if (item.id === 'catnip_fever') {
+          const baseDuration = 480; // 8秒 = 480帧
+          const finalDuration = Math.floor(baseDuration * durationBonus);
+          this.gameInstance.useCatnipFever(finalDuration);
+        } else if (item.id === 'midas_touch') {
+          this.gameInstance.useMidasTouch();
+        } else if (item.id === 'emergency_mobilization') {
+          const baseDuration = 600; // 10秒 = 600帧
+          const finalDuration = Math.floor(baseDuration * durationBonus);
+          this.gameInstance.useEmergencyMobilization(finalDuration);
+        }
+        
+        // 检查是否触发道具回收（不消耗道具）
+        const recycleChance = this.gameInstance.battleBuffs.itemRecycleChance || 0;
+        const isRecycled = Math.random() < recycleChance;
+        
+        if (isRecycled) {
+          // 道具回收成功，不移除道具
+          console.log('道具回收成功！');
+          // 显示浮动提示
+          if (this.gameInstance.floatingTexts) {
+            this.gameInstance.floatingTexts.push(
+              new FloatingText('✨ 道具回收！', this.gameInstance.width / 2, this.gameInstance.height / 3, '#FFD700')
+            );
+          }
+        } else {
+          // 正常消耗道具，从背包移除
+          this.runState.inventory.splice(index, 1);
+        }
+        
+        this.renderInventoryBar(true); // 强制刷新，因为道具被使用/消耗了
+      }
+    };
+    
+    // 启动游戏
+    window.addEventListener('DOMContentLoaded', () => {
+      GameApp.init();
+    });
+  </script>
+</body>
+</html>

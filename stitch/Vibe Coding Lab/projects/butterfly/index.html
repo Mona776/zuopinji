@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Butterfly - Visual Reality</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Outfit:wght@200;300;400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #a2e9ff;
+            /* Ethereal moon blue */
+            --secondary-color: #8c8eff;
+            /* Mystical lavender */
+            --bg-dark: #020617;
+            /* Midnight depth */
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --font-ethereal: 'Cinzel', serif;
+            --font-outfit: 'Outfit', sans-serif;
+            --transition-speed: 0.5s;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-outfit);
+            background: var(--bg-dark);
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        #loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-dark);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            transition: opacity 0.5s ease;
+        }
+
+        .loader {
+            text-align: center;
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+
+        .butterfly-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .loader p {
+            color: var(--primary-color);
+            font-family: var(--font-title);
+            letter-spacing: 0.1em;
+            font-size: 0.9rem;
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                filter: drop-shadow(0 0 10px rgba(0, 242, 255, 0.4));
+                opacity: 0.7;
+            }
+
+            50% {
+                filter: drop-shadow(0 0 30px rgba(0, 242, 255, 0.8));
+                opacity: 1;
+            }
+        }
+
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #webcam {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+            opacity: 0.95;
+            /* 极致美化：明亮、高饱和、微米级磨皮感 */
+            filter: contrast(1.08) brightness(1.12) saturate(1.15) sepia(0.03) blur(0.4px);
+            transition: filter 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 极致氛围层：性能优化版 */
+        .aesthetic-bloom {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 3;
+            /* 合并滤镜，减少双重采样带来的性能损耗 */
+            backdrop-filter: blur(12px) brightness(1.2) saturate(1.2);
+            -webkit-backdrop-filter: blur(12px) brightness(1.2) saturate(1.2);
+            /* 使用硬件加速提示 */
+            will-change: backdrop-filter;
+            transform: translate3d(0, 0, 0);
+            
+            mask-image: radial-gradient(circle at 50% 45%, transparent 15%, rgba(0, 0, 0, 0.5) 60%, rgba(0, 0, 0, 1) 100%);
+            -webkit-mask-image: radial-gradient(circle at 50% 45%, transparent 15%, rgba(0, 0, 0, 0.5) 60%, rgba(0, 0, 0, 1) 100%);
+            opacity: 0.7;
+        }
+
+        /* 核心溢光：改用高性能渐变混合，取代昂贵的 backdrop-filter */
+        .dreamy-flare {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 2;
+            background: radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.3) 0%, transparent 60%);
+            mix-blend-mode: plus-lighter;
+            will-change: opacity;
+            opacity: 0.5;
+        }
+
+        /* 噪点纹理：使用 translateZ 强制分层 */
+        #grain-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 4;
+            pointer-events: none;
+            opacity: 0.04;
+            background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
+            mix-blend-mode: overlay;
+            transform: translateZ(0);
+        }
+
+        /* 氛围感背景层：添加轻微的暗角和色彩偏移 */
+        #container::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(162, 233, 255, 0.05) 0%, rgba(2, 6, 23, 0.7) 100%);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        #output-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        #ui-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 10;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        header h1 {
+            font-family: var(--font-ethereal);
+            font-size: 2.8rem;
+            font-weight: 400;
+            letter-spacing: 0.3em;
+            background: linear-gradient(180deg, #fff, var(--primary-color));
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            filter: drop-shadow(0 0 15px rgba(162, 233, 255, 0.3));
+            animation: breathe-title 8s infinite ease-in-out;
+        }
+
+        @keyframes breathe-title {
+
+            0%,
+            100% {
+                opacity: 0.8;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.02);
+            }
+        }
+
+        header p {
+            font-family: var(--font-outfit);
+            font-weight: 200;
+            letter-spacing: 0.2em;
+            opacity: 0.4;
+            font-size: 0.8rem;
+            margin-top: 0.8rem;
+            text-transform: lowercase;
+            font-style: italic;
+        }
+
+        #status-panel {
+            position: absolute;
+            top: 3rem;
+            right: 3rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            padding: 1.5rem;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            min-width: 180px;
+            animation: drift 10s infinite ease-in-out;
+        }
+
+        @keyframes drift {
+
+            0%,
+            100% {
+                transform: translate(0, 0);
+            }
+
+            50% {
+                transform: translate(-10px, 10px);
+            }
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+        }
+
+        .status-tag {
+            font-size: 0.6rem;
+            background: rgba(162, 233, 255, 0.1);
+            color: var(--primary-color);
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(162, 233, 255, 0.2);
+            margin-left: auto;
+        }
+
+        .indicator {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 1s ease;
+        }
+
+        .indicator.online {
+            background: var(--primary-color);
+            box-shadow: 0 0 15px var(--primary-color), 0 0 30px var(--primary-color);
+            transform: scale(1.5);
+        }
+
+        #controls-hint {
+            align-self: center;
+            background: transparent;
+            padding: 0.8rem 1.5rem;
+            font-size: 0.75rem;
+            letter-spacing: 0.2em;
+            color: var(--primary-color);
+            opacity: 0.6;
+            font-style: italic;
+            animation: float-hint 5s infinite ease-in-out;
+        }
+
+        @keyframes float-hint {
+
+            0%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.8;
+            }
+
+            50% {
+                transform: translateY(-5px);
+                opacity: 1;
+            }
+        }
+
+        /* 音乐激活按钮样式 */
+        #audio-init-btn {
+            position: fixed;
+            bottom: 5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem 3.5rem;
+            border-radius: 100px;
+            color: #fff;
+            font-family: var(--font-ethereal);
+            font-size: 0.8rem;
+            letter-spacing: 0.4em;
+            cursor: pointer;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: all 0.8s cubic-bezier(0.2, 0, 0.2, 1);
+            pointer-events: auto;
+            text-transform: uppercase;
+        }
+
+        #audio-init-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            letter-spacing: 0.6em;
+            transform: translateX(-50%) translateY(-5px);
+            border-color: var(--primary-color);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        #audio-init-btn.activated {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(-50%) translateY(30px) scale(0.9);
+        }
+
+        .wave-icon {
+            display: flex;
+            gap: 3px;
+            align-items: flex-end;
+            height: 18px;
+        }
+
+        .wave-icon span {
+            width: 1px;
+            background: var(--primary-color);
+            animation: wave-anim 2s infinite ease-in-out;
+        }
+
+        .wave-icon span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .wave-icon span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes wave-anim {
+
+            0%,
+            100% {
+                height: 6px;
+            }
+
+            50% {
+                height: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loading-overlay">
+        <div class="loader">
+            <div class="butterfly-icon">🦋</div>
+            <p>Initializing Neural Vision...</p>
+        </div>
+    </div>
+
+    <div id="container">
+        <video id="webcam" autoplay playsinline></video>
+        <div class="dreamy-flare"></div>
+        <div class="aesthetic-bloom"></div>
+        <div id="grain-layer"></div>
+        <canvas id="output-canvas"></canvas>
+        <div id="ui-overlay">
+            <header>
+                <h1>DIGITAL BUTTERFLY</h1>
+                <p>Wave fingers, dance with life</p>
+            </header>
+            <div id="status-panel">
+                <div class="status-item" id="camera-status"><span class="indicator"></span> CAM: STANDBY</div>
+                <div class="status-item" id="hand-status"><span class="indicator"></span> SCAN: NO DATA</div>
+                <div class="status-item"><span class="indicator online"></span> MODE: AESTHETIC <span class="status-tag">ACTIVE</span></div>
+            </div>
+            <div id="controls-hint">💡 Enable audio for full neural immersion</div>
+            <button id="audio-init-btn">
+                <div class="wave-icon">
+                    <span></span><span></span><span></span>
+                </div>
+                Activate Neural Audio
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { HandLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0";
+
+        // --- 视觉类定义 (Butterfly & Particle) ---
+        class Butterfly {
+            constructor(ctx, x, y, options = {}) {
+                this.ctx = ctx; this.x = x; this.y = y;
+                this.size = options.size || Math.random() * 30 + 40;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2 - 1;
+                this.life = 1.0; this.decay = 0.005 + Math.random() * 0.01;
+                this.color = options.color || `hsla(${200 + Math.random() * 60}, 100%, 70%, 1)`;
+                this.wingAngle = 0; this.wingSpeed = 0.1 + Math.random() * 0.2;
+                this.rotation = Math.atan2(this.vy, this.vx);
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy; this.life -= this.decay;
+                this.wingAngle += this.wingSpeed;
+                this.vx += (Math.random() - 0.5) * 0.1; this.vy += (Math.random() - 0.5) * 0.1;
+                return this.life > 0;
+            }
+            draw() {
+                const alpha = Math.min(1, this.life * 2);
+                this.ctx.save();
+                this.ctx.translate(this.x, this.y);
+                this.ctx.rotate(this.rotation);
+                this.ctx.globalAlpha = alpha;
+                const flap = Math.sin(this.wingAngle) * 0.8;
+                this.ctx.strokeStyle = this.color;
+                this.ctx.lineWidth = 4.5; // 线条加粗，提升视觉分量
+                this.ctx.lineCap = "round"; // 圆润端点增加高级感
+                this.ctx.shadowBlur = 20; // 对应线条厚度，增强辉光
+                this.ctx.shadowColor = this.color;
+                this.ctx.beginPath();
+                this.ctx.moveTo(0, 0);
+                this.ctx.bezierCurveTo(-this.size * flap, -this.size, -this.size * 1.5 * flap, 0, 0, 0);
+                this.ctx.bezierCurveTo(-this.size * flap, this.size, -this.size * 0.8 * flap, 0, 0, 0);
+                this.ctx.moveTo(0, 0);
+                this.ctx.bezierCurveTo(this.size * flap, -this.size, this.size * 1.5 * flap, 0, 0, 0);
+                this.ctx.bezierCurveTo(this.size * flap, this.size, this.size * 0.8 * flap, 0, 0, 0);
+                this.ctx.stroke();
+                this.ctx.restore();
+            }
+        }
+
+        class DigitalParticle {
+            constructor(ctx, x, y, content, color) {
+                this.ctx = ctx; this.x = x; this.y = y;
+                // 参考效果中的符号库
+                const symbols = ["0", "1", "+", "*", "†"];
+                this.content = content || symbols[Math.floor(Math.random() * symbols.length)];
+                this.color = color;
+                this.size = Math.random() * 8 + 8;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2 - 0.5; // 向上飘动
+                this.life = 1.0; this.decay = 0.012 + Math.random() * 0.015;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.spin = (Math.random() - 0.5) * 0.05;
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                this.life -= this.decay;
+                this.rotation += this.spin;
+                return this.life > 0;
+            }
+            draw() {
+                this.ctx.save();
+                this.ctx.globalAlpha = this.life;
+                this.ctx.fillStyle = this.color;
+                this.ctx.translate(this.x, this.y);
+                this.ctx.rotate(this.rotation);
+                this.ctx.font = `${this.size}px 'Orbitron'`;
+                this.ctx.shadowBlur = 10; this.ctx.shadowColor = this.color;
+                this.ctx.fillText(this.content, 0, 0);
+                this.ctx.restore();
+            }
+        }
+
+        class TrajectoryParticle {
+            constructor(ctx, x, y, color) {
+                this.ctx = ctx; this.x = x; this.y = y;
+                // 参考图中的丰富符号：二进制、加号、星号、匕首
+                const symbols = ["0", "1", "+", "*", "†", "⊹", "✧", "°"];
+                this.content = symbols[Math.floor(Math.random() * symbols.length)];
+                this.color = color;
+                this.size = Math.random() * 12 + 10;
+                // 稳定期仅有极其微小的抖动
+                this.vx = (Math.random() - 0.5) * 0.4;
+                this.vy = (Math.random() - 0.5) * 0.4;
+                this.life = 1.0;
+                this.decay = 0.002 + Math.random() * 0.005;
+                this.gravity = 0;
+                this.isFalling = false;
+                this.stableTime = 60 + Math.random() * 60; // 稳定期延长
+                this.timeAlive = 0;
+            }
+            update() {
+                this.timeAlive++;
+                if (this.timeAlive > this.stableTime) {
+                    this.isFalling = true;
+                    this.gravity += 0.2; // 加速掉落
+                }
+
+                if (this.isFalling) {
+                    this.vy += this.gravity;
+                    this.life -= 0.04; // 掉落时快速消亡
+                } else {
+                    this.life -= this.decay;
+                }
+
+                this.x += this.vx; this.y += this.vy;
+                return this.life > 0;
+            }
+            draw() {
+                this.ctx.save();
+                this.ctx.globalAlpha = this.life;
+                this.ctx.fillStyle = this.color;
+                this.ctx.font = `${this.size}px 'Orbitron'`;
+                this.ctx.shadowBlur = 12; this.ctx.shadowColor = this.color;
+                this.ctx.fillText(this.content, this.x, this.y);
+                this.ctx.restore();
+            }
+        }
+
+        // --- 音效系统 (Web Audio API) ---
+        class AudioSystem {
+            constructor() {
+                this.ctx = null;
+                this.gainNode = null;
+                this.lastPlayTime = 0;
+                this.minInterval = 200; // 调优：更平衡的间隔
+                this.lastPlayPos = { x: 0, y: 0 };
+                this.minDistance = 30; // 调优：更容易检测到位置变化
+                // 大调五声音阶 (C5, D5, E5, G5, A5, C6) - 极具空灵感的组合
+                this.scale = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50, 1174.66, 1318.51];
+                this.isInitialized = false;
+            }
+            init() {
+                if (this.isInitialized) return;
+                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                this.gainNode = this.ctx.createGain();
+                this.gainNode.connect(this.ctx.destination);
+                this.gainNode.gain.value = 0.15;
+                this.isInitialized = true;
+
+                // 视觉反馈：点击后隐藏提示
+                const hint = document.getElementById("controls-hint");
+                if (hint) hint.innerText = "💡 Neural Audio Active - Dance to the pulse";
+            }
+            play(x, y, velocity) {
+                if (!this.isInitialized || this.ctx.state !== 'running') return;
+                const now = performance.now();
+
+                // 计算相对于上次发声位置的位移
+                const dist = Math.sqrt(Math.pow(x - this.lastPlayPos.x, 2) + Math.pow(y - this.lastPlayPos.y, 2));
+
+                // 灵敏度微调：降低门槛，确保易于触发
+                if (now - this.lastPlayTime < this.minInterval) return;
+                if (velocity < 6) return;
+                if (dist < this.minDistance) return;
+
+                this.lastPlayTime = now;
+                this.lastPlayPos = { x, y };
+
+                // 将 Y 轴映射到五声音阶
+                const noteIndex = Math.floor(Math.max(0, 1 - (y / window.innerHeight)) * this.scale.length);
+                const freq = this.scale[Math.min(noteIndex, this.scale.length - 1)];
+
+                this.triggerCrystalNote(freq, x, velocity);
+            }
+
+            triggerCrystalNote(freq, x, velocity) {
+                const now = this.ctx.currentTime;
+
+                // 1. 主振荡器 (纯净的正弦波)
+                const osc1 = this.ctx.createOscillator();
+                const gain1 = this.ctx.createGain();
+
+                // 2. 泛音振荡器 (增加晶莹感)
+                const osc2 = this.ctx.createOscillator();
+                const gain2 = this.ctx.createGain();
+
+                const panner = this.ctx.createStereoPanner();
+                panner.pan.value = (x / window.innerWidth) * 2 - 1;
+
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(freq, now);
+
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(freq * 2.01, now); // 微小失律增加厚度
+
+                // 动态包络：短促而通透
+                const volume = Math.min(0.2, velocity * 0.008);
+
+                gain1.gain.setValueAtTime(0, now);
+                gain1.gain.linearRampToValueAtTime(volume, now + 0.02);
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 1.2); // 长尾韵
+
+                gain2.gain.setValueAtTime(0, now);
+                gain2.gain.linearRampToValueAtTime(volume * 0.5, now + 0.01);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+                osc1.connect(gain1);
+                osc2.connect(gain2);
+                gain1.connect(panner);
+                gain2.connect(panner);
+                panner.connect(this.gainNode);
+
+                osc1.start(now);
+                osc2.start(now);
+                osc1.stop(now + 1.5);
+                osc2.stop(now + 1.5);
+            }
+        }
+        const audioSystem = new AudioSystem();
+
+        // --- 主应用逻辑 ---
+        const video = document.getElementById("webcam");
+        const canvasElement = document.getElementById("output-canvas");
+        const canvasCtx = canvasElement.getContext("2d");
+        const loadingOverlay = document.getElementById("loading-overlay");
+        const handStatus = document.getElementById("hand-status");
+        const cameraStatusText = document.getElementById("camera-status");
+
+        const butterflies = [];
+        const trajectoryParticles = [];
+        const PURE_CYAN = "#00f2ff";
+        const PURE_MAGENTA = "#bd00ff";
+        const PURE_WHITE = "#ffffff";
+
+        let handLandmarker;
+        let lastVideoTime = -1;
+        let lastPos = { x: 0, y: 0 };
+
+        const audioInitBtn = document.getElementById("audio-init-btn");
+
+        // 点击按钮初始化音频
+        audioInitBtn.addEventListener('click', () => {
+            audioSystem.init();
+            if (audioSystem.ctx && audioSystem.ctx.state === 'suspended') {
+                audioSystem.ctx.resume();
+            }
+            audioInitBtn.classList.add("activated");
+            setTimeout(() => audioInitBtn.style.display = "none", 500);
+        });
+
+        async function createHandLandmarker() {
+            const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm");
+            handLandmarker = await HandLandmarker.createFromOptions(vision, {
+                baseOptions: {
+                    modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+                    delegate: "GPU"
+                },
+                runningMode: "VIDEO", numHands: 2
+            });
+            loadingOverlay.style.opacity = 0;
+            setTimeout(() => (loadingOverlay.style.display = "none"), 1000);
+        }
+
+        function startWebcam() {
+            if (navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+                    video.srcObject = stream;
+                    video.addEventListener("loadeddata", () => {
+                        cameraStatusText.querySelector(".indicator").classList.add("online");
+                        cameraStatusText.innerHTML = `<span class="indicator online"></span> CAM: LIVE`;
+                        resizeCanvas();
+                        renderLoop();
+                    });
+                });
+            }
+        }
+
+        function resizeCanvas() {
+            canvasElement.width = window.innerWidth;
+            canvasElement.height = window.innerHeight;
+        }
+        window.addEventListener("resize", resizeCanvas);
+
+        function drawHand(results) {
+            if (results.landmarks && results.landmarks.length > 0) {
+                handStatus.innerHTML = `<span class="indicator online"></span> HAND: LOCKED`;
+                results.landmarks.forEach((landmarks) => {
+                    const indexTip = landmarks[8];
+                    const tx = (1 - indexTip.x) * canvasElement.width;
+                    const ty = indexTip.y * canvasElement.height;
+
+                    // 计算移动速度用于音效和粒子
+                    const dx = tx - lastPos.x;
+                    const dy = ty - lastPos.y;
+                    const velocity = Math.sqrt(dx * dx + dy * dy);
+
+                    // 触发空灵音效
+                    audioSystem.play(tx, ty, velocity);
+                    lastPos = { x: tx, y: ty };
+
+                    // 1. 指尖能量焦点 (Fingertip Flare)
+                    canvasCtx.save();
+                    const gradient = canvasCtx.createRadialGradient(tx, ty, 0, tx, ty, 30);
+                    gradient.addColorStop(0, "rgba(189, 0, 255, 0.5)");
+                    gradient.addColorStop(1, "rgba(189, 0, 255, 0)");
+                    canvasCtx.fillStyle = gradient;
+                    canvasCtx.beginPath();
+                    canvasCtx.arc(tx, ty, 30, 0, Math.PI * 2);
+                    canvasCtx.fill();
+                    canvasCtx.restore();
+
+                    // 2. 轨迹粒子
+                    const spawnCount = velocity > 5 ? 5 : 2;
+                    for (let i = 0; i < spawnCount; i++) {
+                        trajectoryParticles.push(new TrajectoryParticle(
+                            canvasCtx,
+                            tx + (Math.random() - 0.5) * 15,
+                            ty + (Math.random() - 0.5) * 15,
+                            PURE_WHITE
+                        ));
+                    }
+
+                    if (Math.random() > 0.94) {
+                        butterflies.push(new Butterfly(canvasCtx, tx, ty, { color: PURE_CYAN }));
+                    }
+                });
+            } else {
+                handStatus.innerHTML = `<span class="indicator"></span> SCAN: NO DATA`;
+            }
+        }
+
+        async function renderLoop() {
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            if (lastVideoTime !== video.currentTime && handLandmarker) {
+                lastVideoTime = video.currentTime;
+                const results = handLandmarker.detectForVideo(video, performance.now());
+                drawHand(results);
+            }
+
+            for (let i = trajectoryParticles.length - 1; i >= 0; i--) {
+                trajectoryParticles[i].update() ? trajectoryParticles[i].draw() : trajectoryParticles.splice(i, 1);
+            }
+
+            for (let i = butterflies.length - 1; i >= 0; i--) {
+                butterflies[i].update() ? butterflies[i].draw() : butterflies.splice(i, 1);
+            }
+            requestAnimationFrame(renderLoop);
+        }
+
+        createHandLandmarker().then(startWebcam);
+    </script>
+</body>
+
+</html>

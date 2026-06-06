@@ -1,0 +1,1979 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>联盟小黑屋</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    #intro-video {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 20;
+      background: #000;
+      transition: opacity 0.8s ease;
+    }
+    #start-prompt {
+      position: fixed;
+      inset: 0;
+      z-index: 22;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      background: rgba(0,0,0,0.72);
+    }
+    #start-prompt span {
+      color: rgba(255,255,255,0.75);
+      font: 600 16px monospace;
+      letter-spacing: 0.2em;
+      animation: blink 1.4s ease-in-out infinite;
+    }
+    @keyframes blink {
+      0%,100% { opacity: 0.75; }
+      50%      { opacity: 0.25; }
+    }
+  </style>
+  <script type="module" crossorigin src="./assets/index-qflx6H0T.js"></script>
+</head>
+<body>
+  <video id="intro-video" playsinline></video>
+  <div id="start-prompt"><span>CLICK TO START</span></div>
+  <canvas id="game"></canvas>
+
+  <!-- PC 桌面 UI 覆盖层（电源恢复后点击屏幕触发） -->
+  <div id="pc-desktop-overlay" style="display:none; position:fixed; inset:0; z-index:32; opacity:0; transition:opacity 0.5s ease;">
+    <style>
+      #pc-desktop-overlay * { image-rendering: pixelated; box-sizing: border-box; }
+      #pc-desktop-overlay body-inner { display: contents; }
+      #pc-desktop-overlay .pxf { font-family: 'Press Start 2P', cursive; }
+      #pc-desktop-overlay .pixel-border-cartoon {
+        border: 4px solid #000;
+        box-shadow: 6px 6px 0px rgba(0,0,0,0.3), inset 3px 3px 0px rgba(255,255,255,0.9), inset -3px -3px 0px rgba(0,0,0,0.15);
+      }
+      #pc-desktop-overlay .pixel-btn-cartoon {
+        border: 3px solid #000;
+        box-shadow: inset 2px 2px 0px rgba(255,255,255,0.7), inset -2px -2px 0px rgba(0,0,0,0.25);
+        transition: transform 0.1s, box-shadow 0.1s;
+        cursor: pointer;
+      }
+      #pc-desktop-overlay .pixel-btn-cartoon:active { transform: translate(2px,2px); }
+      #pc-desktop-overlay .win-close-btn {
+        background: #ba1a1a; border: 3px solid #000; cursor: pointer;
+        box-shadow: inset 3px 3px 0px #ffdad6, inset -3px -3px 0px #93000a;
+      }
+      #pc-desktop-overlay .taskbar {
+        position: fixed; bottom: 0; left: 0; width: 100%;
+        background: #f1eedd; border-top: 6px solid #000;
+        height: 64px; display: flex; align-items: center; justify-content: space-between;
+        padding: 0 12px; z-index: 50; font-family: 'Press Start 2P', cursive;
+      }
+      #pc-desktop-overlay .desktop-icon { cursor: pointer; display: flex; flex-direction: column; align-items: center; width: 112px; }
+      #pc-desktop-overlay .icon-frame {
+        background: #fff; border: 3px solid #000; padding: 4px; width: 64px; height: 64px;
+        box-shadow: 4px 4px 0px rgba(0,0,0,0.2);
+      }
+      #pc-desktop-overlay .icon-label {
+        color: white; font-size: 8px; text-align: center; margin-top: 4px; padding: 2px 8px;
+        text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+      }
+      #pc-desktop-overlay .window {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+        background: #fdfae8; border: 4px solid #000;
+        box-shadow: 6px 6px 0 rgba(0,0,0,0.3);
+        display: none; flex-direction: column; overflow: hidden; z-index: 40;
+      }
+      #pc-desktop-overlay .win-title {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 12px; height: 44px; border-bottom: 4px solid #000;
+        font-family: 'Press Start 2P', cursive; font-weight: bold; color: white;
+      }
+      #pc-desktop-overlay .win-footer {
+        height: 38px; background: #dddaca; border-top: 4px solid #000;
+        display: flex; align-items: center; padding: 0 12px;
+        font-family: 'Press Start 2P', cursive; font-size: 8px; font-weight: bold;
+        justify-content: space-between;
+      }
+      #pc-desktop-overlay .chat-left {
+        background: #e0e5ff; border: 3px solid #000; padding: 8px;
+        border-radius: 8px; max-width: 80%; font-size: 10px;
+        font-family: 'Press Start 2P', cursive; line-height: 1.6;
+      }
+      #pc-desktop-overlay .chat-right {
+        background: #aaf5a5; border: 3px solid #000; padding: 8px;
+        border-radius: 8px; max-width: 80%; margin-left: auto; font-size: 10px;
+        font-family: 'Press Start 2P', cursive; line-height: 1.6;
+      }
+      #pc-desktop-overlay .start-btn {
+        background: #266c2d; border: 4px solid #000; border-radius: 8px;
+        box-shadow: inset 3px 3px 0px #8fd88b, inset -3px -3px 0px #045317, 3px 3px 0px rgba(0,0,0,0.2);
+        color: white; display: flex; align-items: center; gap: 12px;
+        padding: 0 20px; height: 46px; cursor: pointer; font-family: 'Press Start 2P', cursive; font-size: 14px;
+      }
+      @keyframes pcDesktopPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+    <!-- 桌面背景 -->
+    <div style="position:absolute; inset:0; background:url('assets/pc_desktop/wallpaper.jpg') center/cover;"></div>
+
+    <!-- 返回按钮（右上角，始终可见） -->
+    <div onclick="pcDesktopClose()" style="
+      position:absolute; top:12px; right:12px; z-index:100;
+      background:rgba(0,0,0,0.65); border:2px solid rgba(255,255,255,0.4);
+      color:rgba(255,255,255,0.85); font-family:'Press Start 2P',cursive;
+      font-size:9px; padding:8px 14px; cursor:pointer; border-radius:4px;
+      display:flex; align-items:center; gap:6px;
+      transition:background 0.15s, border-color 0.15s;
+    " onmouseover="this.style.background='rgba(0,0,0,0.85)';this.style.borderColor='rgba(255,255,255,0.8)'"
+       onmouseout="this.style.background='rgba(0,0,0,0.65)';this.style.borderColor='rgba(255,255,255,0.4)'">
+      <span class="material-symbols-outlined" style="font-size:14px;color:rgba(255,255,255,0.85);">arrow_back</span>
+      ESC 返回
+    </div>
+
+    <!-- 桌面图标区 -->
+    <div style="position:absolute; top:16px; left:16px; display:grid; grid-template-columns:1fr 1fr; gap:8px; z-index:10;">
+      <!-- 列1: 照片 1-4 -->
+      <div style="display:flex; flex-direction:column; gap:8px; margin-top:16px;">
+        <div class="desktop-icon" onclick="pcOpenPhoto('/assets/pc_desktop/photo1.jpg','1.jpg','9')">
+          <div class="icon-frame"><img src="./assets/pc_desktop/photo1.jpg" style="width:100%;height:100%;object-fit:cover;"/></div>
+          <span class="icon-label">1.jpg</span>
+        </div>
+        <div class="desktop-icon" onclick="pcOpenPhoto('/assets/pc_desktop/photo2.jpg','2.jpg','0')">
+          <div class="icon-frame"><img src="./assets/pc_desktop/photo2.jpg" style="width:100%;height:100%;object-fit:cover;"/></div>
+          <span class="icon-label">2.jpg</span>
+        </div>
+        <div class="desktop-icon" onclick="pcOpenPhoto('/assets/pc_desktop/photo3.jpg','3.jpg','3')">
+          <div class="icon-frame"><img src="./assets/pc_desktop/photo3.jpg" style="width:100%;height:100%;object-fit:cover;"/></div>
+          <span class="icon-label">3.jpg</span>
+        </div>
+        <div class="desktop-icon" onclick="pcOpenPhoto('/assets/pc_desktop/photo4.jpg','4.jpg','8')">
+          <div class="icon-frame"><img src="./assets/pc_desktop/photo4.jpg" style="width:100%;height:100%;object-fit:cover;"/></div>
+          <span class="icon-label">4.jpg</span>
+        </div>
+      </div>
+      <!-- 列2: 音乐 + QQ -->
+      <div style="display:flex; flex-direction:column; gap:8px; margin-top:16px;">
+        <div class="desktop-icon" onclick="pcOpenMusic()">
+          <div class="icon-frame" style="background:#ffddb5;display:flex;align-items:center;justify-content:center;">
+            <span class="material-symbols-outlined" style="font-size:36px;color:#6f4600;">music_note</span>
+          </div>
+          <span class="icon-label">给小雨.mp3</span>
+        </div>
+        <div class="desktop-icon" onclick="pcOpenQQ()">
+          <div class="icon-frame" style="display:flex;align-items:center;justify-content:center;background:#fff;">
+            <img src="./assets/pc_desktop/qq_icon.png" style="width:100%;height:100%;object-fit:contain;"/>
+          </div>
+          <span class="icon-label">QQ</span>
+        </div>
+        <!-- 门图标 -->
+        <div class="desktop-icon" onclick="pcOpenDoor()" title="进入游戏世界">
+          <div class="icon-frame" style="background:linear-gradient(135deg,#1a0a05,#3d1a08);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
+            <!-- 像素风门 -->
+            <svg width="44" height="44" viewBox="0 0 44 44" style="image-rendering:pixelated;">
+              <!-- 门框 -->
+              <rect x="4" y="4" width="36" height="38" fill="#8B5A2B" rx="0"/>
+              <rect x="6" y="6" width="32" height="34" fill="#1a0a03" rx="0"/>
+              <!-- 门板 -->
+              <rect x="8" y="8" width="28" height="30" fill="#6B3A1F" rx="0"/>
+              <!-- 门缝线 -->
+              <rect x="21" y="8" width="2" height="30" fill="#4a2510" rx="0"/>
+              <!-- 门把手 -->
+              <rect x="25" y="22" width="4" height="3" fill="#ffd700" rx="0"/>
+              <!-- 发光效果（门缝透光） -->
+              <rect x="21" y="8" width="2" height="30" fill="rgba(255,200,80,0.35)" rx="0"/>
+              <!-- 内框装饰 -->
+              <rect x="10" y="10" width="10" height="12" fill="none" stroke="#8B5A2B" stroke-width="1"/>
+              <rect x="23" y="10" width="10" height="12" fill="none" stroke="#8B5A2B" stroke-width="1"/>
+            </svg>
+            <!-- 光晕 -->
+            <div style="position:absolute;inset:0;background:radial-gradient(circle at 60% 50%,rgba(255,180,50,0.2),transparent 70%);"></div>
+          </div>
+          <span class="icon-label">进入</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 窗口：图片查看器 -->
+    <div class="window pixel-border-cartoon" id="pc-photo-window" style="width:min(640px,90vw);">
+      <div class="win-title" style="background:#245edb;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="material-symbols-outlined" style="font-size:18px;">image</span>
+          <span id="pc-photo-title" class="pxf" style="font-size:12px;">Photo</span>
+        </div>
+        <button class="win-close-btn" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:4px;" onclick="pcCloseAll()">
+          <span class="material-symbols-outlined" style="color:white;font-size:18px;">close</span>
+        </button>
+      </div>
+      <div style="background:#000;display:flex;align-items:center;justify-content:center;padding:16px;min-height:380px;">
+        <div style="position:relative;display:inline-block;">
+          <img id="pc-photo-img" src="" style="max-height:360px;max-width:100%;object-contain;border:4px solid #fff;display:block;"/>
+          <span id="pc-photo-num" style="
+            position:absolute; bottom:14px; left:16px;
+            font-family:'Press Start 2P',cursive; font-size:24px; font-weight:bold;
+            color:rgba(155,115,55,0.52);
+            text-shadow:1px 1px 3px rgba(0,0,0,0.35),-1px -1px 1px rgba(210,175,110,0.1);
+            filter:blur(0.4px); pointer-events:none; user-select:none;
+          "></span>
+        </div>
+      </div>
+      <div class="win-footer">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="material-symbols-outlined" style="font-size:16px;">zoom_in</span>
+          <span id="pc-photo-filename" class="pxf" style="font-size:8px;">1.jpg</span>
+        </div>
+        <span class="pxf" style="font-size:8px;">PREVIEW</span>
+      </div>
+    </div>
+
+    <!-- 窗口：音乐播放器 -->
+    <audio id="pc-audio" src="/assets/pc_desktop/music.mp4" preload="auto"></audio>
+
+    <div class="window pixel-border-cartoon" id="pc-music-window" style="width:min(600px,92vw);">
+      <div class="win-title" style="background:#266c2d;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="material-symbols-outlined" style="font-size:18px;">music_note</span>
+          <span class="pxf" style="font-size:12px;">给小雨.mp3</span>
+        </div>
+        <button class="win-close-btn" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:4px;" onclick="pcMusicStop();pcCloseAll()">
+          <span class="material-symbols-outlined" style="color:white;font-size:18px;">close</span>
+        </button>
+      </div>
+      <div style="background:#fdfae8;padding:20px;min-height:320px;display:flex;flex-direction:column;gap:16px;">
+        <!-- 显示区 -->
+        <div style="background:#000;border:4px solid #000;border-radius:8px;padding:16px 20px;display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <p class="pxf" style="color:#ffddb5;font-size:10px;">给小雨 — SK-张宏文 2008</p>
+            <p id="pc-music-status" class="pxf" style="color:#aaf5a5;font-size:8px;">⏹ 已停止</p>
+          </div>
+          <div style="border-top:1px solid rgba(255,255,255,0.12);padding-top:10px;display:flex;flex-direction:column;gap:7px;">
+            <p style="color:rgba(255,255,255,0.65);font-size:13px;line-height:1.9;font-family:serif;">不要站在我的墓前為我哭泣。我不在那裏，我不曾睡去。</p>
+            <p style="color:rgba(255,255,255,0.65);font-size:13px;line-height:1.9;font-family:serif;">我是萬千呼嘯的風，飛過白雪皚皚的<span style="text-decoration:underline;text-underline-offset:3px;color:#c8f0ff;font-weight:bold;">諾森德</span><sup style="color:#ff8866;font-size:10px;margin-left:2px;">2</sup>。</p>
+            <p style="color:rgba(255,255,255,0.65);font-size:13px;line-height:1.9;font-family:serif;">我是柔和細膩的雨，灑落<span style="text-decoration:underline;text-underline-offset:3px;color:#c8f0ff;font-weight:bold;">西部荒野</span><sup style="color:#ff8866;font-size:10px;margin-left:2px;">4</sup>的金色稻田。</p>
+            <p style="color:rgba(255,255,255,0.65);font-size:13px;line-height:1.9;font-family:serif;">我是清幽安靜的晨，彌漫在綠色茂盛的<span style="text-decoration:underline;text-underline-offset:3px;color:#c8f0ff;font-weight:bold;">荊棘谷</span><sup style="color:#ff8866;font-size:10px;margin-left:2px;">3</sup>。</p>
+            <p style="color:rgba(255,255,255,0.65);font-size:13px;line-height:1.9;font-family:serif;">我是威武雄壯的鼓，踏過無限草原<span style="text-decoration:underline;text-underline-offset:3px;color:#c8f0ff;font-weight:bold;">納格蘭</span><sup style="color:#ff8866;font-size:10px;margin-left:2px;">1</sup>。</p>
+            <p style="color:rgba(255,255,255,0.65);font-size:13px;line-height:1.9;font-family:serif;">我是歌唱的鳥，我存在於一切的美好。</p>
+            <p style="color:rgba(255,255,255,0.65);font-size:13px;line-height:1.9;font-family:serif;">不要站在我的墓前為我哭泣。我不在那裏，我從未離去。</p>
+          </div>
+        </div>
+        <!-- 进度条 -->
+        <div>
+          <div id="pc-music-bar-bg" style="height:20px;background:#e6e3d2;border:4px solid #000;position:relative;cursor:pointer;" onclick="pcMusicSeek(event)">
+            <div id="pc-music-bar" style="height:100%;width:0%;background:#266c2d;border-right:4px solid #000;transition:width 0.3s linear;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:8px;margin-top:4px;" class="pxf">
+            <span id="pc-music-cur">00:00</span>
+            <span id="pc-music-dur">--:--</span>
+          </div>
+        </div>
+        <!-- 控制按钮 -->
+        <div style="display:flex;align-items:center;justify-content:center;gap:16px;">
+          <button class="pixel-btn-cartoon" onclick="pcMusicStop()" style="width:52px;height:52px;background:#ece9d8;display:flex;align-items:center;justify-content:center;border-radius:8px;" title="停止">
+            <span class="material-symbols-outlined">stop</span>
+          </button>
+          <button class="pixel-btn-cartoon" id="pc-play-btn" onclick="pcMusicToggle()" style="width:60px;height:60px;background:#aaf5a5;display:flex;align-items:center;justify-content:center;border-radius:8px;" title="播放/暂停">
+            <span class="material-symbols-outlined" style="font-size:36px;" id="pc-play-icon">play_arrow</span>
+          </button>
+        </div>
+      </div>
+      <div class="win-footer">
+        <span class="pxf" style="font-size:8px;">STEREO · 128KBPS</span>
+        <span class="pxf" style="font-size:8px;">MUSIC PLAYER</span>
+      </div>
+    </div>
+
+    <script>
+    (function(){
+      const audio  = document.getElementById('pc-audio')
+      const bar    = document.getElementById('pc-music-bar')
+      const barBg  = document.getElementById('pc-music-bar-bg')
+      const curEl  = document.getElementById('pc-music-cur')
+      const durEl  = document.getElementById('pc-music-dur')
+      const status = document.getElementById('pc-music-status')
+      const icon   = document.getElementById('pc-play-icon')
+
+      function fmt(s){ const m=Math.floor(s/60); return `${String(m).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}` }
+
+      audio.addEventListener('loadedmetadata', ()=>{ durEl.textContent=fmt(audio.duration) })
+      audio.addEventListener('timeupdate', ()=>{
+        if (!audio.duration) return
+        bar.style.width = (audio.currentTime/audio.duration*100)+'%'
+        curEl.textContent = fmt(audio.currentTime)
+      })
+      audio.addEventListener('play',  ()=>{ icon.textContent='pause';  status.textContent='▶ 正在播放...' })
+      audio.addEventListener('pause', ()=>{ icon.textContent='play_arrow'; status.textContent='⏸ 已暂停' })
+      audio.addEventListener('ended', ()=>{ icon.textContent='play_arrow'; status.textContent='⏹ 播放完毕'; bar.style.width='0%' })
+
+      window.pcMusicToggle = function(){
+        if (audio.paused) audio.play().catch(()=>{})
+        else audio.pause()
+      }
+      window.pcMusicStop = function(){
+        audio.pause(); audio.currentTime=0
+        status.textContent='⏹ 已停止'; bar.style.width='0%'
+      }
+      window.pcMusicSeek = function(e){
+        if (!audio.duration) return
+        const rect=barBg.getBoundingClientRect()
+        audio.currentTime = ((e.clientX-rect.left)/rect.width)*audio.duration
+      }
+    })()
+    </script>
+
+    <!-- 窗口：QQ 聊天 -->
+    <div class="window pixel-border-cartoon" id="pc-qq-window" style="width:min(480px,90vw);">
+      <div class="win-title" style="background:#0046b8;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <img src="./assets/pc_desktop/qq_icon.png" style="width:22px;height:22px;object-fit:contain;"/>
+          <span class="pxf" style="font-size:11px;">与 小雨 聊天中...</span>
+        </div>
+        <button class="win-close-btn" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:4px;" onclick="pcCloseAll()">
+          <span class="material-symbols-outlined" style="color:white;font-size:18px;">close</span>
+        </button>
+      </div>
+      <div style="height:360px;display:flex;flex-direction:column;">
+        <div style="flex:1;overflow-y:auto;padding:16px;background:#fff;border-bottom:4px solid #000;display:flex;flex-direction:column;gap:14px;">
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <span class="pxf" style="font-size:8px;color:#245edb;">小雨 13:10</span>
+            <div class="chat-left">老张你在不，今天是开幕式，你说好要上线一起去艾萨拉钓鱼的！</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
+            <span class="pxf" style="font-size:8px;color:#266c2d;">我（老张） 13:15</span>
+            <div class="chat-right">哈哈哈就快了，外面好吵，先等等。</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <span class="pxf" style="font-size:8px;color:#245edb;">小雨 13:22</span>
+            <div class="chat-left">？地震了吗，我这边晃动了一下</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
+            <span class="pxf" style="font-size:8px;color:#266c2d;">我（老张） 13:28</span>
+            <div class="chat-right">四川这边...有点大，先不说了，待会再</div>
+          </div>
+          <div style="text-align:center;padding:8px 0;">
+            <span class="pxf" style="font-size:9px;color:#999;">— 对方已下线 2008-05-12 13:28 —</span>
+          </div>
+        </div>
+        <div style="background:#dddaca;padding:8px;display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;gap:8px;">
+            <span class="material-symbols-outlined" style="cursor:pointer;color:#245edb;">sentiment_satisfied</span>
+            <span class="material-symbols-outlined" style="cursor:pointer;color:#245edb;">image</span>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <input style="flex:1;border:4px solid #000;border-radius:8px;padding:4px 8px;font-family:'Press Start 2P',cursive;font-size:9px;background:#fff;outline:none;" placeholder="输入消息..." type="text"/>
+            <button class="pixel-btn-cartoon" style="background:#0046b8;color:white;padding:4px 16px;border-radius:8px;font-family:'Press Start 2P',cursive;font-size:8px;">发送</button>
+          </div>
+        </div>
+      </div>
+      <div class="win-footer">
+        <span class="pxf" style="font-size:8px;">QQ MESSENGER</span>
+        <span class="pxf" style="font-size:8px;">CONNECTED</span>
+      </div>
+    </div>
+
+    <!-- 密码弹窗 -->
+    <div id="pc-door-overlay" style="
+      display:none; position:absolute; inset:0; z-index:60;
+      background:rgba(0,0,0,0.72); align-items:center; justify-content:center;
+    " onclick="if(event.target===this)pcCloseDoor()">
+      <div style="
+        background:#1c1b1b; border:4px solid #000;
+        box-shadow:8px 8px 0 rgba(0,0,0,0.4), inset 4px 4px 0 #353535, inset -4px -4px 0 #131313;
+        padding:32px 36px; display:flex; flex-direction:column; align-items:center; gap:20px;
+        min-width:340px; font-family:'Press Start 2P',cursive;
+      ">
+        <!-- 标题 -->
+        <div style="display:flex;align-items:center;gap:10px;">
+          <svg width="20" height="24" viewBox="0 0 20 24" style="image-rendering:pixelated;">
+            <rect x="2" y="2" width="16" height="20" fill="#6B3A1F"/>
+            <rect x="4" y="4" width="12" height="16" fill="#1a0a03"/>
+            <rect x="9" y="4" width="2" height="16" fill="rgba(255,180,50,0.4)"/>
+            <rect x="12" y="11" width="3" height="2" fill="#ffd700"/>
+          </svg>
+          <span style="font-size:11px;color:#c8a95a;letter-spacing:0.05em;">输入通行密码</span>
+        </div>
+        <p style="font-size:7px;color:rgba(200,180,140,0.55);text-align:center;line-height:1.8;">
+          歌中藏有线索<br/>找到四个地点对应的数字
+        </p>
+
+        <!-- 四位数字框 -->
+        <div style="display:flex;gap:10px;" id="pc-door-boxes">
+          <div class="pc-door-box" data-idx="0">_</div>
+          <div class="pc-door-box" data-idx="1">_</div>
+          <div class="pc-door-box" data-idx="2">_</div>
+          <div class="pc-door-box" data-idx="3">_</div>
+        </div>
+
+        <!-- 数字键盘 -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:200px;">
+          <style>
+            .pc-numkey {
+              background:#20201f; border:3px solid #000; color:#e5e2e1;
+              font-family:'Press Start 2P',cursive; font-size:14px;
+              padding:10px 0; text-align:center; cursor:pointer;
+              box-shadow:inset -2px -2px 0 #131313, inset 2px 2px 0 #353535, 0 3px 0 #000;
+              transition:transform 0.08s, box-shadow 0.08s;
+            }
+            .pc-numkey:active { transform:translateY(3px); box-shadow:inset 2px 2px 0 #131313; }
+            .pc-door-box {
+              width:50px; height:58px; background:#0e0e0e; border:3px solid #5b4137;
+              box-shadow:inset 3px 3px 0 #000; display:flex; align-items:center; justify-content:center;
+              font-family:'Press Start 2P',cursive; font-size:22px; color:#ffb59a;
+              transition:border-color 0.2s;
+            }
+            .pc-door-box.active { border-color:#ffb59a; }
+            .pc-door-box.error  { border-color:#ff3333 !important; animation:doorShake 0.3s ease; }
+            @keyframes doorShake {
+              0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)}
+            }
+          </style>
+          <button class="pc-numkey" onclick="pcDoorInput('1')">1</button>
+          <button class="pc-numkey" onclick="pcDoorInput('2')">2</button>
+          <button class="pc-numkey" onclick="pcDoorInput('3')">3</button>
+          <button class="pc-numkey" onclick="pcDoorInput('4')">4</button>
+          <button class="pc-numkey" onclick="pcDoorInput('5')">5</button>
+          <button class="pc-numkey" onclick="pcDoorInput('6')">6</button>
+          <button class="pc-numkey" onclick="pcDoorInput('7')">7</button>
+          <button class="pc-numkey" onclick="pcDoorInput('8')">8</button>
+          <button class="pc-numkey" onclick="pcDoorInput('9')">9</button>
+          <button class="pc-numkey" onclick="pcDoorDelete()" style="font-size:10px;color:#ff8888;">←</button>
+          <button class="pc-numkey" onclick="pcDoorInput('0')">0</button>
+          <button class="pc-numkey" onclick="pcDoorSubmit()" style="background:#802900;color:#ffb59a;font-size:9px;">确认</button>
+        </div>
+
+        <p id="pc-door-msg" style="font-size:8px;color:rgba(200,180,140,0);height:12px;transition:color 0.3s;">密码错误</p>
+        <button onclick="pcCloseDoor()" style="
+          background:#20201f; border:2px solid #5b4137; color:#888;
+          font-family:'Press Start 2P',cursive; font-size:7px; padding:6px 14px; cursor:pointer;
+        ">取消</button>
+      </div>
+    </div>
+
+    <script>
+    (function(){
+      const CORRECT = '3908'  // 納格蘭¹=8, 諾森德²=9, 荊棘谷³=3, 西部荒野⁴=0 → 按下标顺序1234: 8,9,3,0 → 8930? 按地点顺序: 诺森德(2)=9,西部荒野(4)=0,荆棘谷(3)=3,纳格兰(1)=8 → 3908
+      let input = ''
+
+      function getBoxes() { return document.querySelectorAll('.pc-door-box') }
+      function updateBoxes() {
+        getBoxes().forEach((b,i)=>{
+          b.textContent = input[i] || '_'
+          b.classList.toggle('active', i===input.length)
+          b.classList.remove('error')
+        })
+      }
+
+      window.pcOpenDoor = function(){
+        input=''
+        updateBoxes()
+        document.getElementById('pc-door-msg').style.color='rgba(200,180,140,0)'
+        const el=document.getElementById('pc-door-overlay')
+        el.style.display='flex'
+      }
+      window.pcCloseDoor = function(){
+        document.getElementById('pc-door-overlay').style.display='none'
+      }
+      window.pcDoorInput = function(d){
+        if (input.length>=4) return
+        input+=d; updateBoxes()
+      }
+      window.pcDoorDelete = function(){
+        input=input.slice(0,-1); updateBoxes()
+      }
+      window.pcDoorSubmit = function(){
+        if (input.length<4) return
+        if (input===CORRECT) {
+          pcCloseDoor()
+          // 隐藏桌面，启动结局序列
+          const desktop=document.getElementById('desktop-overlay')
+          if(desktop){desktop.style.opacity='0';setTimeout(()=>{desktop.style.display='none'},500)}
+          setTimeout(()=>{ if(window.startEndingSequence) window.startEndingSequence() }, 600)
+        } else {
+          getBoxes().forEach(b=>b.classList.add('error'))
+          document.getElementById('pc-door-msg').style.color='#ff6666'
+          setTimeout(()=>{ input=''; updateBoxes() }, 600)
+        }
+      }
+
+      // 键盘输入支持
+      document.addEventListener('keydown', e=>{
+        const overlay=document.getElementById('pc-door-overlay')
+        if (!overlay || overlay.style.display==='none') return
+        if (e.key>='0'&&e.key<='9') pcDoorInput(e.key)
+        else if (e.key==='Backspace') pcDoorDelete()
+        else if (e.key==='Enter') pcDoorSubmit()
+        else if (e.key==='Escape') pcCloseDoor()
+      })
+    })()
+    </script>
+
+    <!-- 任务栏 -->
+    <div class="taskbar">
+      <div style="display:flex;align-items:center;gap:12px;height:100%;">
+        <button class="start-btn" onclick="pcDesktopClose()">
+          <span class="material-symbols-outlined" style="font-size:22px;">rocket_launch</span>
+          <span>START</span>
+        </button>
+        <div id="pc-active-task" style="display:none;height:46px;background:#fff;border:4px solid #000;border-radius:10px;padding:0 20px;align-items:center;gap:12px;min-width:180px;">
+          <span class="material-symbols-outlined" id="pc-task-icon" style="font-size:18px;color:#245edb;">image</span>
+          <span id="pc-task-label" class="pxf" style="font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;">1.jpg</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;height:46px;padding:0 20px;border:4px solid #000;background:#f1eedd;border-radius:10px;box-shadow:inset 2px 2px 0 rgba(0,0,0,0.1);">
+        <span class="material-symbols-outlined" style="font-size:18px;cursor:pointer;margin-right:8px;">volume_up</span>
+        <span class="material-symbols-outlined" style="font-size:18px;cursor:pointer;margin-right:12px;">wifi</span>
+        <div style="width:1px;height:22px;background:rgba(0,0,0,0.2);margin-right:12px;"></div>
+        <div style="display:flex;flex-direction:column;align-items:center;line-height:1;">
+          <span class="pxf" style="font-size:12px;color:#245edb;font-weight:bold;">14:28</span>
+          <span class="pxf" style="font-size:8px;color:#434654;">2008/5/12</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── PC 桌面 UI 逻辑 ──────────────────────────────────────────────
+    function showPcDesktop() {
+      const el = document.getElementById('pc-desktop-overlay')
+      el.style.display = 'block'
+      requestAnimationFrame(() => { el.style.opacity = '1' })
+    }
+    function hidePcDesktop() {
+      const el = document.getElementById('pc-desktop-overlay')
+      el.style.opacity = '0'
+      setTimeout(() => { el.style.display = 'none'; pcCloseAll() }, 500)
+    }
+    window.showPcDesktop = showPcDesktop
+    window.hidePcDesktop = hidePcDesktop
+
+    function pcCloseAll() {
+      ['pc-photo-window','pc-music-window','pc-qq-window'].forEach(id => {
+        const w = document.getElementById(id)
+        if (w) w.style.display = 'none'
+      })
+      const t = document.getElementById('pc-active-task')
+      if (t) t.style.display = 'none'
+    }
+
+    function pcDesktopClose() {
+      hidePcDesktop()
+    }
+
+    function pcOpenPhoto(src, filename, num) {
+      pcCloseAll()
+      document.getElementById('pc-photo-img').src = src
+      document.getElementById('pc-photo-title').textContent = filename
+      document.getElementById('pc-photo-filename').textContent = filename
+      document.getElementById('pc-photo-num').textContent = num || ''
+      document.getElementById('pc-photo-window').style.display = 'flex'
+      const t = document.getElementById('pc-active-task')
+      t.style.display = 'flex'
+      document.getElementById('pc-task-label').textContent = filename
+      document.getElementById('pc-task-icon').textContent = 'image'
+      document.getElementById('pc-task-icon').style.color = '#245edb'
+    }
+
+    function pcOpenMusic() {
+      pcCloseAll()
+      document.getElementById('pc-music-window').style.display = 'flex'
+      const t = document.getElementById('pc-active-task')
+      t.style.display = 'flex'
+      document.getElementById('pc-task-label').textContent = '给小雨.mp3'
+      document.getElementById('pc-task-icon').textContent = 'music_note'
+      document.getElementById('pc-task-icon').style.color = '#266c2d'
+    }
+
+    function pcOpenQQ() {
+      pcCloseAll()
+      document.getElementById('pc-qq-window').style.display = 'flex'
+      const t = document.getElementById('pc-active-task')
+      t.style.display = 'flex'
+      document.getElementById('pc-task-label').textContent = '与 小雨 聊天中...'
+      document.getElementById('pc-task-icon').textContent = 'chat_bubble'
+      document.getElementById('pc-task-icon').style.color = '#0046b8'
+    }
+  </script>
+
+  <!-- 羊皮纸详情覆盖层 -->
+  <div id="note-detail-overlay" style="
+    display:none; position:fixed; inset:0; z-index:45;
+    background:rgba(0,0,0,0); transition:background 0.3s ease;
+    align-items:center; justify-content:center; cursor:pointer;
+  " onclick="hideNoteDetail()">
+    <img id="note-detail-img" src="./assets/note_detail.png" style="
+      max-width:min(600px,85vw); max-height:85vh;
+      object-fit:contain; filter:drop-shadow(0 8px 32px rgba(0,0,0,0.6));
+      transform:scale(0.85); transition:transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+      pointer-events:none;
+    "/>
+  </div>
+
+  <script>
+    function showNoteDetail() {
+      const el = document.getElementById('note-detail-overlay')
+      const img = document.getElementById('note-detail-img')
+      el.style.display = 'flex'
+      requestAnimationFrame(() => {
+        el.style.background = 'rgba(0,0,0,0.72)'
+        img.style.transform = 'scale(1)'
+      })
+    }
+    function hideNoteDetail() {
+      const el = document.getElementById('note-detail-overlay')
+      const img = document.getElementById('note-detail-img')
+      el.style.background = 'rgba(0,0,0,0)'
+      img.style.transform = 'scale(0.85)'
+      setTimeout(() => { el.style.display = 'none' }, 300)
+    }
+    window.showNoteDetail = showNoteDetail
+    window.hideNoteDetail = hideNoteDetail
+  </script>
+
+  <!-- 结局序列覆盖层 -->
+  <div id="ending-overlay" style="
+    display:none; position:fixed; inset:0; z-index:200;
+    background:#000; align-items:center; justify-content:center; flex-direction:column;
+  ">
+    <!-- 打字机文字 -->
+    <div id="ending-text" style="
+      color:rgba(220,200,160,0); font-family:'Press Start 2P',cursive;
+      font-size:18px; letter-spacing:0.12em; line-height:2;
+      text-align:center; padding:0 40px; max-width:800px;
+      transition:color 0.4s ease;
+      text-shadow:0 0 20px rgba(200,160,80,0.4);
+    "></div>
+    <!-- 视频播放区 -->
+    <video id="ending-video" style="
+      display:none; width:100%; height:100%; object-fit:cover;
+      position:absolute; inset:0;
+    " playsinline></video>
+  </div>
+
+  <script>
+  (function(){
+    const overlay   = document.getElementById('ending-overlay');
+    const textEl    = document.getElementById('ending-text');
+    const videoEl   = document.getElementById('ending-video');
+
+    // 打字机效果：在 textEl 里逐字出现
+    function typewriter(text, speed, onDone) {
+      textEl.textContent = '';
+      textEl.style.color = 'rgba(220,200,160,0.9)';
+      let i = 0;
+      const timer = setInterval(() => {
+        textEl.textContent += text[i++];
+        if (i >= text.length) {
+          clearInterval(timer);
+          if (onDone) setTimeout(onDone, 1400);
+        }
+      }, speed);
+    }
+
+    // 播放视频，结束后回调
+    function playVideo(src, onEnded) {
+      videoEl.src = src;
+      videoEl.style.display = 'block';
+      textEl.style.color = 'rgba(220,200,160,0)';  // 隐藏文字
+      videoEl.play().catch(()=>{});
+      videoEl.onended = () => {
+        videoEl.style.display = 'none';
+        if (onEnded) onEnded();
+      };
+    }
+
+    // 屏幕变黑（已是黑底，直接回调）
+    function fadeToBlack(onDone) {
+      textEl.style.color = 'rgba(220,200,160,0)';
+      setTimeout(onDone, 600);
+    }
+
+    // 结局流程
+    window.startEndingSequence = function() {
+      overlay.style.display = 'flex';
+
+      // 1. 打字机：门成功打开了
+      setTimeout(() => {
+        typewriter('门成功打开了', 90, () => {
+          // 2. 黑屏 → 播放第一段动画
+          fadeToBlack(() => {
+            playVideo('/assets/ending1.mp4', () => {
+              // 3. 打字机：你从那扇门穿过...
+              typewriter('你从那扇门穿过...', 90, () => {
+                // 4. 黑屏 → 播放第二段动画
+                fadeToBlack(() => {
+                  playVideo('/assets/ending2.mp4', () => {
+                    // 5. 游戏结束
+                    textEl.style.color = 'rgba(220,200,160,0.7)';
+                    textEl.textContent = 'THE END';
+                  });
+                });
+              });
+            });
+          });
+        });
+      }, 800);  // 进入后短暂停顿
+    };
+  })();
+  </script>
+
+  <!-- 全局黑色过渡遮罩（z-index 最高，用于场景切换） -->
+  <div id="black-curtain" style="display:none; position:fixed; inset:0; z-index:50; background:#000; opacity:0; transition:opacity 0.3s ease; pointer-events:none;"></div>
+
+  <!-- WoW 登录界面覆盖层 -->
+  <div id="wow-login-overlay" style="display:none; position:fixed; inset:0; z-index:35; opacity:0; transition:opacity 0.6s ease; font-family:'Press Start 2P',cursive; image-rendering:pixelated;">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet"/>
+    <style>
+      #wow-login-overlay * { box-sizing:border-box; }
+      #wow-login-overlay body-inner { display:contents; }
+      #wow-login-overlay .pixel-box-16bit {
+        position:relative; background:#20201f; border:4px solid #000;
+        box-shadow: 0 -4px 0 0 #000, 0 4px 0 0 #000, -4px 0 0 0 #000, 4px 0 0 0 #000,
+          inset 4px 4px 0 0 #5b4137, inset -4px -4px 0 0 #131313;
+      }
+      #wow-login-overlay .pixel-btn-3d {
+        position:relative; background:#ffb59a; color:#5b1b00; border:4px solid #000; cursor:pointer;
+        box-shadow: inset -4px -4px 0 0 #a83900, inset 4px 4px 0 0 #ffdbcf, 0 4px 0 0 #2B1608;
+        transition:transform 0.1s, box-shadow 0.1s; font-family:'Press Start 2P',cursive;
+      }
+      #wow-login-overlay .pixel-btn-3d:active { transform:translateY(4px); box-shadow:inset 4px 4px 0 0 #a83900; }
+      #wow-login-overlay .pixel-btn-quit {
+        background:#93000a; color:#ffdad6;
+        box-shadow: inset -4px -4px 0 0 #690005, inset 4px 4px 0 0 #ffb4ab, 0 4px 0 0 #000;
+      }
+      #wow-login-overlay .pixel-input-box {
+        background:#0e0e0e; border:4px solid #5b4137; box-shadow:inset 4px 4px 0 0 #000;
+      }
+      #wow-login-overlay .scanlines {
+        background: linear-gradient(to bottom, rgba(18,16,16,0) 50%, rgba(0,0,0,0.2) 50%);
+        background-size:100% 4px; pointer-events:none;
+      }
+      #wow-login-overlay .custom-cursor {
+        width:12px; height:24px; background:#ff5a00; display:inline-block;
+        animation:wowBlink 0.8s infinite;
+      }
+      @keyframes wowBlink { 0%,100%{opacity:1} 50%{opacity:0} }
+      #wow-login-overlay .pixel-text-shadow { text-shadow:2px 2px 0px #2B1608; }
+      #wow-login-overlay .logo-glow { filter:drop-shadow(4px 4px 0px #5b1b00); }
+    </style>
+
+    <!-- 背景 -->
+    <div style="position:absolute; inset:0;">
+      <img src="./assets/desktop/wow_login_bg.jpg" style="width:100%; height:100%; object-fit:cover;" alt=""/>
+      <div style="position:absolute; inset:0; background:rgba(0,0,0,0.4);"></div>
+    </div>
+    <!-- 扫描线 -->
+    <div class="scanlines" style="position:absolute; inset:0; z-index:1; opacity:0.3;"></div>
+
+    <!-- UI 层 -->
+    <div style="position:relative; z-index:2; width:100%; height:100%; display:flex; flex-direction:column;">
+      <!-- 顶部 Logo -->
+      <header style="padding:32px; display:flex; align-items:flex-start;">
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <h1 class="pixel-text-shadow logo-glow" style="font-size:clamp(18px,3vw,36px); color:#ffb59a; letter-spacing:0.15em; line-height:1.3;">World Of<br/>Warcraft</h1>
+          <div class="pixel-box-16bit" style="padding:6px 12px; background:#000;">
+            <span style="font-size:8px; color:#ffdb9d; font-family:'Press Start 2P',cursive;">V0.1.6-BETA</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- 主体 -->
+      <main style="flex:1; display:grid; grid-template-columns:1fr 2fr 1fr; padding:0 32px; align-items:center;">
+        <!-- 左侧公告 -->
+        <div style="display:flex; flex-direction:column; gap:32px; align-items:flex-start; align-self:flex-end; padding-bottom:96px;">
+          <div class="pixel-box-16bit" style="width:256px; padding:20px; display:flex; flex-direction:column; gap:16px;">
+            <div style="display:flex; align-items:center; gap:12px; border-bottom:2px solid rgba(91,65,55,0.5); padding-bottom:12px;">
+              <span class="material-symbols-outlined" style="color:#ffb59a; font-size:16px; font-variation-settings:'FILL' 1;">campaign</span>
+              <h2 style="font-size:8px; color:#ffb59a; text-transform:uppercase; letter-spacing:0.1em; font-family:'Press Start 2P',cursive;" class="pixel-text-shadow">公告</h2>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              <div style="display:flex; gap:8px;">
+                <span style="color:#ffdb9d; font-size:8px; font-family:'Press Start 2P',cursive;">»</span>
+                <p style="font-size:8px; color:#e5e2e1; line-height:1.8; text-transform:uppercase; font-family:'Press Start 2P',cursive;">服务器维护：今晚 2:00-4:00</p>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <span style="color:#ffdb9d; font-size:8px; font-family:'Press Start 2P',cursive;">»</span>
+                <p style="font-size:8px; color:#e5e2e1; line-height:1.8; text-transform:uppercase; font-family:'Press Start 2P',cursive;">双倍经验周末开启！</p>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <span style="color:#ffdb9d; font-size:8px; font-family:'Press Start 2P',cursive;">»</span>
+                <p style="font-size:8px; color:#e5e2e1; line-height:1.8; text-transform:uppercase; font-family:'Press Start 2P',cursive;">铁炉堡大区：联盟小黑屋 (5/50)</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 中间登录框 -->
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
+          <div class="pixel-box-16bit" style="width:100%; max-width:400px; padding:40px;">
+            <div style="display:flex; flex-direction:column; gap:32px;">
+              <div>
+                <label style="display:block; font-size:10px; color:#ffdb9d; margin-bottom:16px; text-align:center; text-transform:uppercase; font-family:'Press Start 2P',cursive;" class="pixel-text-shadow">账号名称</label>
+                <div class="pixel-input-box" style="padding:14px;">
+                  <input id="wow-username" style="width:100%; background:transparent; border:none; outline:none; font-size:10px; color:#ffb59a; font-family:'Press Start 2P',cursive;" type="text" placeholder="" autocomplete="off"/>
+                </div>
+              </div>
+              <div>
+                <label style="display:block; font-size:10px; color:#ffdb9d; margin-bottom:16px; text-align:center; text-transform:uppercase; font-family:'Press Start 2P',cursive;" class="pixel-text-shadow">账号密码</label>
+                <div class="pixel-input-box" style="padding:14px; display:flex; align-items:center;">
+                  <input id="wow-password" style="width:100%; background:transparent; border:none; outline:none; font-size:10px; color:#ffb59a; font-family:'Press Start 2P',cursive;" type="password" placeholder="" autocomplete="off"/>
+                  <div class="custom-cursor" style="margin-left:8px;"></div>
+                </div>
+              </div>
+              <button id="wow-login-btn" class="pixel-btn-3d" style="width:100%; padding:22px; font-size:18px; text-transform:uppercase; letter-spacing:0.1em;">
+                登 录
+              </button>
+              <div id="wow-login-error" style="
+                display:none; background:rgba(147,0,10,0.85); border:2px solid #ff4444;
+                padding:10px 14px; font-size:8px; color:#ffdad6; font-family:'Press Start 2P',cursive;
+                text-align:center; line-height:1.8;
+              ">账号或密码错误，无法登录</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧退出 -->
+        <div style="display:flex; flex-direction:column; gap:24px; align-items:flex-end; align-self:flex-end; padding-bottom:96px;">
+          <button id="wow-quit-btn" class="pixel-btn-3d pixel-btn-quit" style="display:flex; align-items:center; gap:16px; padding:14px 24px; width:256px; border:4px solid #000; font-family:'Press Start 2P',cursive; cursor:pointer;">
+            <span class="material-symbols-outlined" style="color:white; font-variation-settings:'FILL' 1;">logout</span>
+            <span style="font-size:8px; text-transform:uppercase;">退出游戏</span>
+          </button>
+        </div>
+      </main>
+
+      <!-- 底部 -->
+      <footer style="padding:24px; display:flex; flex-direction:column; align-items:center; gap:12px;">
+        <div style="height:1px; width:100%; max-width:900px; background:rgba(91,65,55,0.3);"></div>
+        <p style="font-size:7px; color:#ab897e; letter-spacing:0.15em; text-align:center; font-family:'Press Start 2P',cursive;">
+          COPYRIGHT © 2004-2008 BLIZZARD ENTERTAINMENT. ALL RIGHTS RESERVED.
+        </p>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    function showWowLogin() {
+      const el = document.getElementById('wow-login-overlay');
+      el.style.display = 'block';
+      requestAnimationFrame(() => { el.style.opacity = '1'; });
+    }
+    function hideWowLogin() {
+      const el = document.getElementById('wow-login-overlay');
+      el.style.opacity = '0';
+      setTimeout(() => { el.style.display = 'none'; }, 650);
+    }
+
+    // 登录按钮 → 验证账号密码
+    document.getElementById('wow-login-btn').addEventListener('click', () => {
+      const btn = document.getElementById('wow-login-btn');
+      const errEl = document.getElementById('wow-login-error');
+      const username = document.getElementById('wow-username').value.trim();
+      const password = document.getElementById('wow-password').value;
+
+      // 按钮抖动
+      btn.style.transform = 'translateY(4px)';
+      setTimeout(() => { btn.style.transform = ''; }, 100);
+
+      // 验证
+      if (username !== 'siyu@163.com' || password !== 'liusiyu19960525') {
+        errEl.style.display = 'block';
+        // 输入框红色边框提示
+        document.getElementById('wow-username').parentElement.style.borderColor = '#ff4444';
+        document.getElementById('wow-password').parentElement.style.borderColor = '#ff4444';
+        setTimeout(() => {
+          document.getElementById('wow-username').parentElement.style.borderColor = '';
+          document.getElementById('wow-password').parentElement.style.borderColor = '';
+        }, 1500);
+        return;
+      }
+
+      // 验证通过，清空错误提示
+      errEl.style.display = 'none';
+
+      // 用 black-curtain 覆盖全屏 + 打字机文字层
+      const curtain = document.getElementById('black-curtain');
+      curtain.style.display = 'block';
+      curtain.style.pointerEvents = 'all';
+      requestAnimationFrame(() => { curtain.style.opacity = '1'; });
+
+      // 创建打字机文字层（挂在 curtain 里）
+      let twEl = document.getElementById('wow-tw-text');
+      if (!twEl) {
+        twEl = document.createElement('div');
+        twEl.id = 'wow-tw-text';
+        twEl.style.cssText = `
+          position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+          font-family:'Press Start 2P',cursive; font-size:15px; color:rgba(220,200,160,0);
+          letter-spacing:0.1em; line-height:2.2; text-align:center; padding:0 80px;
+          transition:color 0.4s ease; pointer-events:none;
+          text-shadow:0 0 18px rgba(200,160,80,0.35);
+        `;
+        curtain.appendChild(twEl);
+      }
+      twEl.textContent = '';
+      twEl.style.color = 'rgba(220,200,160,0)';
+
+      function tw(text, speed, onDone) {
+        twEl.style.color = 'rgba(220,200,160,0.9)';
+        twEl.textContent = '';
+        let i = 0;
+        const t = setInterval(() => {
+          twEl.textContent += text[i++];
+          if (i >= text.length) { clearInterval(t); if (onDone) setTimeout(onDone, 1600); }
+        }, speed);
+      }
+      function fadeText(onDone) {
+        twEl.style.color = 'rgba(220,200,160,0)';
+        setTimeout(onDone, 500);
+      }
+
+      // 黑屏稳定后开始打字机
+      setTimeout(() => {
+        hideWowLogin();  // 先关掉 WoW 界面（黑幕盖着看不到）
+
+        // 第一句
+        tw('你感到头晕晕的....', 80, () => {
+          fadeText(() => {
+            // 第二句
+            tw('再睁开眼时，你来到了一间陌生的网吧', 80, () => {
+              fadeText(() => {
+                // 进入游戏，收起黑幕
+                document.dispatchEvent(new CustomEvent('enter-game'));
+                curtain.style.opacity = '0';
+                setTimeout(() => {
+                  curtain.style.display = 'none';
+                  curtain.style.pointerEvents = 'none';
+                  twEl.textContent = '';
+                }, 500);
+              });
+            });
+          });
+        });
+      }, 600);
+    });
+
+    // 退出按钮 → 回到电脑桌面
+    document.getElementById('wow-quit-btn').addEventListener('click', () => {
+      hideWowLogin();
+      // 重新显示桌面 UI
+      const desktop = document.getElementById('desktop-overlay');
+      desktop.style.background = '';
+      desktop.style.display = 'block';
+      requestAnimationFrame(() => { desktop.style.opacity = '1'; });
+    });
+  </script>
+
+  <!-- 电脑桌面 UI 覆盖层（点击唤醒后显示） -->
+  <div id="desktop-overlay" style="display:none; position:fixed; inset:0; z-index:30; opacity:0; transition:opacity 0.6s ease; font-family:'VT323',monospace;">
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style>
+      #desktop-overlay * { box-sizing: border-box; }
+      #desktop-overlay .pixel-font { font-family: 'VT323', monospace; image-rendering: pixelated; }
+      #desktop-overlay .pixel-border { box-shadow: 0 -2px 0 0 #000, 0 2px 0 0 #000, -2px 0 0 0 #000, 2px 0 0 0 #000; }
+      /* QQ 新消息跳动 */
+      @keyframes qqBounce {
+        0%,100% { transform:translateY(0) scale(1.25); }
+        25%     { transform:translateY(-16px) scale(1.25); }
+        50%     { transform:translateY(0) scale(1.25); }
+        75%     { transform:translateY(-8px) scale(1.25); }
+      }
+      #desktop-overlay #dock-qq.qq-bouncing { animation:qqBounce 0.7s ease infinite; }
+      #desktop-overlay .pixelated { image-rendering: pixelated; }
+      #desktop-overlay .dither-bg { background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 2px 2px; }
+      #desktop-overlay .window-shadow { box-shadow: 8px 8px 0px 0px rgba(0,0,0,0.15); }
+      #desktop-overlay .material-symbols-outlined { font-size: 18px !important; font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20; }
+      #desktop-overlay .bubble-feishu-left { position:relative; background:#ffffff; border:2px solid #000; }
+      #desktop-overlay .bubble-feishu-right { position:relative; background:#dbe1ff; border:2px solid #000; }
+      #desktop-overlay .bubble-qq-left { position:relative; background:#ffffff; border:2px solid #000; border-radius:8px; }
+      #desktop-overlay .bubble-qq-right { position:relative; background:#95ec69; border:2px solid #000; border-radius:8px; }
+      #desktop-overlay .pixel-scrollbar::-webkit-scrollbar { width:8px; }
+      #desktop-overlay .pixel-scrollbar::-webkit-scrollbar-track { background:#f1eedd; }
+      #desktop-overlay .pixel-scrollbar::-webkit-scrollbar-thumb { background:#737686; border:2px solid #000; }
+      #desktop-overlay .hidden-window { display:none !important; }
+    </style>
+
+    <!-- 桌面背景 -->
+    <div style="position:fixed; inset:0; z-index:0;">
+      <img alt="Desktop Background" style="width:100%; height:100%; object-fit:cover; image-rendering:pixelated;" src="./assets/desktop/desktop_bg.jpg"/>
+    </div>
+
+
+    <!-- 顶部菜单栏 -->
+    <header style="position:fixed; top:0; left:0; right:0; z-index:50; display:flex; justify-content:space-between; align-items:center; padding:0 16px; height:32px; background:rgba(253,250,232,0.85); backdrop-filter:blur(8px); border-bottom:1px solid rgba(0,0,0,0.1);">
+      <div style="display:flex; align-items:center; gap:16px;">
+        <span class="material-symbols-outlined" style="font-size:16px;">menu</span>
+        <span class="pixel-font" style="font-weight:bold; font-size:14px;">Finder</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="material-symbols-outlined" style="font-size:16px;">wifi</span>
+        <span class="material-symbols-outlined" style="font-size:16px;">battery_full</span>
+        <span class="material-symbols-outlined" style="font-size:16px;">volume_up</span>
+        <span class="pixel-font" style="font-weight:bold; font-size:14px; margin-left:4px;" id="desktop-clock">00:00</span>
+      </div>
+    </header>
+
+    <!-- 主工作区 -->
+    <main style="position:relative; height:100%; width:100%; padding:48px 32px 80px; display:flex; align-items:flex-start; gap:24px; justify-content:center; overflow:hidden;">
+
+      <!-- 飞书窗口 -->
+      <div id="window-feishu" class="pixel-border window-shadow" style="position:relative; width:100%; max-width:640px; background:#f7f4e3; border:4px solid #000; display:flex; flex-direction:column; height:520px; user-select:none;">
+        <div style="height:40px; background:#245edb; border-bottom:4px solid #000; display:flex; align-items:center; justify-content:space-between; padding:0 12px; position:relative; cursor:move;" class="feishu-handle">
+          <div style="display:flex; gap:8px;">
+            <div style="width:12px; height:12px; background:#ff5f56; border:2px solid #000;"></div>
+            <div style="width:12px; height:12px; background:#ffbd2e; border:2px solid #000;"></div>
+            <div style="width:12px; height:12px; background:#27c93f; border:2px solid #000;"></div>
+          </div>
+          <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none;">
+            <span class="pixel-font" style="color:white; font-size:16px; font-weight:bold;">工作群 (4)</span>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <span class="material-symbols-outlined" style="color:white; font-size:14px;">search</span>
+            <span class="material-symbols-outlined" style="color:white; font-size:14px;">more_horiz</span>
+          </div>
+        </div>
+        <div style="display:flex; flex:1; overflow:hidden;">
+          <nav style="width:48px; background:#ece9d8; border-right:4px solid #000; display:flex; flex-direction:column; align-items:center; padding:16px 0; gap:16px;">
+            <span class="material-symbols-outlined" style="color:#245edb; font-variation-settings:'FILL' 1;">chat</span>
+            <span class="material-symbols-outlined" style="color:#737686;">calendar_today</span>
+            <span class="material-symbols-outlined" style="color:#737686;">description</span>
+            <span class="material-symbols-outlined" style="color:#737686;">cloud</span>
+            <div style="margin-top:auto;"><span class="material-symbols-outlined" style="color:#737686;">settings</span></div>
+          </nav>
+          <div style="flex:1; display:flex; flex-direction:column;">
+            <div class="pixel-scrollbar" id="feishu-msg-area" style="flex:1; overflow-y:auto; padding:12px 16px; display:flex; flex-direction:column; gap:14px; background:#f7f4e3; font-family:'VT323',monospace;">
+
+              <!-- ───────── 2026年5月28日 ───────── -->
+              <div style="text-align:center; padding:4px 0;">
+                <span style="font-size:11px; color:#888; background:#ece9d8; padding:2px 10px; border:1px solid #ccc;">2026年5月28日</span>
+              </div>
+
+              <!-- 张伟 10:05 -->
+              <div style="display:flex; gap:8px;">
+                <div style="width:30px; height:30px; background:#3b5bdb; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px; font-weight:bold;">ZW</div>
+                <div style="max-width:78%;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">张伟 10:05</div>
+                  <div class="bubble-feishu-left" style="padding:7px 10px;"><p style="font-size:13px; line-height:1.5; margin:0;">@所有人 今天的会议纪要已上传到云文档，请查收。另外本周六加班，做好准备。</p></div>
+                </div>
+              </div>
+
+              <!-- 我 10:12 -->
+              <div style="display:flex; gap:8px; justify-content:flex-end;">
+                <div style="max-width:78%; text-align:right;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">10:12</div>
+                  <div class="bubble-feishu-right" style="padding:7px 10px;"><p style="font-size:13px; line-height:1.5; margin:0;">收到。</p></div>
+                </div>
+                <div style="width:30px; height:30px; background:#245edb; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px;">我</div>
+              </div>
+
+              <!-- 王强 10:15 -->
+              <div style="display:flex; gap:8px;">
+                <div style="width:30px; height:30px; background:#2b9348; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px; font-weight:bold;">WQ</div>
+                <div style="max-width:78%;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">王强 10:15</div>
+                  <div class="bubble-feishu-left" style="padding:7px 10px;"><p style="font-size:13px; line-height:1.5; margin:0;">收到，周六没问题，我正好把那个遗留的数据库优化再跑一轮。</p></div>
+                </div>
+              </div>
+
+              <!-- 李明 10:20 -->
+              <div style="display:flex; gap:8px;">
+                <div style="width:30px; height:30px; background:#e07b00; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px; font-weight:bold;">LM</div>
+                <div style="max-width:78%;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">李明 10:20</div>
+                  <div class="bubble-feishu-left" style="padding:7px 10px;"><p style="font-size:13px; line-height:1.5; margin:0;">收到，周六刚好可以把下周的排期表梳理出来。</p></div>
+                </div>
+              </div>
+
+              <!-- 张小花 10:25 -->
+              <div style="display:flex; gap:8px;">
+                <div style="width:30px; height:30px; background:#c2185b; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px; font-weight:bold;">花</div>
+                <div style="max-width:78%;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">张小花 10:25</div>
+                  <div class="bubble-feishu-left" style="padding:7px 10px;"><p style="font-size:13px; line-height:1.5; margin:0;">收到，周六全天在公司，随时配合大家调整页面交互。</p></div>
+                </div>
+              </div>
+
+              <!-- 李明 11:30 -->
+              <div style="display:flex; gap:8px;">
+                <div style="width:30px; height:30px; background:#e07b00; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px; font-weight:bold;">LM</div>
+                <div style="max-width:78%;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">李明 11:30</div>
+                  <div class="bubble-feishu-left" style="padding:7px 10px;"><p style="font-size:13px; line-height:1.5; margin:0;">大家今晚别熬太晚，明天早会提前到8点。</p></div>
+                </div>
+              </div>
+
+              <!-- 我 14:45 -->
+              <div style="display:flex; gap:8px; justify-content:flex-end;">
+                <div style="max-width:78%; text-align:right;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">14:45</div>
+                  <div class="bubble-feishu-right" style="padding:7px 10px;"><p style="font-size:13px; line-height:1.5; margin:0;">刚同步看了一下大家昨天的反馈，云文档里的逻辑缺口确实比较大。特别是接口调用频率的上限，如果按现有方案，数据压测肯定过不去。</p></div>
+                </div>
+                <div style="width:30px; height:30px; background:#245edb; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px;">我</div>
+              </div>
+
+              <!-- 张伟 18:20 -->
+              <div style="display:flex; gap:8px;">
+                <div style="width:30px; height:30px; background:#3b5bdb; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px; font-weight:bold;">ZW</div>
+                <div style="max-width:78%;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">张伟 18:20</div>
+                  <div class="bubble-feishu-left" style="padding:7px 10px;"><p style="font-size:13px; line-height:1.5; margin:0;">方案已经定稿了，现在改架构成本太大。数据压测的问题，你在前端做个缓冲处理，先把明天的汇报应付过去。</p></div>
+                </div>
+              </div>
+
+              <!-- 李明 21:10 链接分享 -->
+              <div style="display:flex; gap:8px;">
+                <div style="width:30px; height:30px; background:#e07b00; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px; font-weight:bold;">LM</div>
+                <div style="max-width:80%;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">李明 21:10</div>
+                  <div class="bubble-feishu-left" style="padding:7px 10px; display:flex; flex-direction:column; gap:6px;">
+                    <p style="font-size:13px; line-height:1.5; margin:0;">大家看这个，刚才刷抖音看到的，AI在产品迭代里的应用太超前了。文中提到"AI重塑工作流"，咱们以后是不是可以尝试让AI自动生成这些繁琐的PRD文档？效率能提升好几倍，别总是死磕人工，要学会利用工具，大家共勉。</p>
+                    <div style="background:#f0f0f0; border:1px solid #ccc; padding:5px 8px; display:flex; align-items:center; gap:6px;">
+                      <span class="material-symbols-outlined" style="font-size:14px; color:#245edb;">link</span>
+                      <span style="font-size:10px; color:#245edb; word-break:break-all;">http://www.ai-future-trends-insights.com/article/88921</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 李明 21:12 链接分享 -->
+              <div style="display:flex; gap:8px;">
+                <div style="width:30px; height:30px; background:#e07b00; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px; font-weight:bold;">LM</div>
+                <div style="max-width:80%;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">李明 21:12</div>
+                  <div class="bubble-feishu-left" style="padding:7px 10px; display:flex; flex-direction:column; gap:6px;">
+                    <p style="font-size:13px; line-height:1.5; margin:0;">我又刷到一个，说AI辅助做UI切图已经是行业标配了，大家都要有危机感，多看看这些前沿资讯，咱们不能落后。</p>
+                    <div style="background:#f0f0f0; border:1px solid #ccc; padding:5px 8px; display:flex; align-items:center; gap:6px;">
+                      <span class="material-symbols-outlined" style="font-size:14px; color:#245edb;">link</span>
+                      <span style="font-size:10px; color:#245edb; word-break:break-all;">http://www.chat-gpt-for-workplace-hacks.cn/v3</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 李明 21:20 链接分享 -->
+              <div style="display:flex; gap:8px;">
+                <div style="width:30px; height:30px; background:#e07b00; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px; font-weight:bold;">LM</div>
+                <div style="max-width:80%;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">李明 21:20</div>
+                  <div class="bubble-feishu-left" style="padding:7px 10px; display:flex; flex-direction:column; gap:6px;">
+                    <p style="font-size:13px; line-height:1.5; margin:0;">还有这个，关于提示词工程的，我觉得很有道理，AI生成逻辑闭环全靠Prompt写得好，感觉这就是未来的核心竞争力。</p>
+                    <div style="background:#f0f0f0; border:1px solid #ccc; padding:5px 8px; display:flex; align-items:center; gap:6px;">
+                      <span class="material-symbols-outlined" style="font-size:14px; color:#245edb;">link</span>
+                      <span style="font-size:10px; color:#245edb; word-break:break-all;">http://www.prompt-engineering-master-class.org/tips</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 张伟 21:25 -->
+              <div style="display:flex; gap:8px;">
+                <div style="width:30px; height:30px; background:#3b5bdb; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px; font-weight:bold;">ZW</div>
+                <div style="max-width:78%;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">张伟 21:25</div>
+                  <div class="bubble-feishu-left" style="padding:7px 10px;"><p style="font-size:13px; line-height:1.5; margin:0;">@刘思雨 李总发的东西很有参考意义啊，思雨，要不你研究下怎么用这些AI工具把现在的文档再补一补？毕竟这可是未来的趋势。</p></div>
+                </div>
+              </div>
+
+              <!-- 我 22:15 -->
+              <div style="display:flex; gap:8px; justify-content:flex-end;">
+                <div style="max-width:78%; text-align:right;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">22:15</div>
+                  <div class="bubble-feishu-right" style="padding:7px 10px;"><p style="font-size:13px; line-height:1.5; margin:0;">这种临时填坑的逻辑以后维护起来会是灾难。至于AI工具，目前生成的逻辑闭环还是有问题，没法直接商用，还是人工梳理最保险。</p></div>
+                </div>
+                <div style="width:30px; height:30px; background:#245edb; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px;">我</div>
+              </div>
+
+              <!-- 王强 01:30 -->
+              <div style="display:flex; gap:8px;">
+                <div style="width:30px; height:30px; background:#2b9348; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px; font-weight:bold;">WQ</div>
+                <div style="max-width:78%;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">王强 01:30</div>
+                  <div class="bubble-feishu-left" style="padding:7px 10px;"><p style="font-size:13px; line-height:1.5; margin:0;">还在吗？刚才改动了几个字段，你把文档更新一下吧，不然明天早上同步不过来。</p></div>
+                </div>
+              </div>
+
+              <!-- 我 01:45 -->
+              <div style="display:flex; gap:8px; justify-content:flex-end;">
+                <div style="max-width:78%; text-align:right;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">01:45</div>
+                  <div class="bubble-feishu-right" style="padding:7px 10px;"><p style="font-size:13px; line-height:1.5; margin:0;">……收到，正在改。</p></div>
+                </div>
+                <div style="width:30px; height:30px; background:#245edb; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px;">我</div>
+              </div>
+
+              <!-- ───────── 2026年5月29日 ───────── -->
+              <div style="text-align:center; padding:4px 0;">
+                <span style="font-size:11px; color:#888; background:#ece9d8; padding:2px 10px; border:1px solid #ccc;">2026年5月29日</span>
+              </div>
+
+              <!-- 张伟 23:35 -->
+              <div style="display:flex; gap:8px;">
+                <div style="width:30px; height:30px; background:#3b5bdb; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px; font-weight:bold;">ZW</div>
+                <div style="max-width:78%;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">张伟 23:35</div>
+                  <div class="bubble-feishu-left" style="padding:7px 10px;"><p style="font-size:13px; line-height:1.5; margin:0;">@所有人 刚才复盘了下，下周上线的版本还得再磨一磨，今晚大家都辛苦一下，把手里的逻辑最后再过一遍，明天要给客户演示。</p></div>
+                </div>
+              </div>
+
+              <!-- 王强 23:40 -->
+              <div style="display:flex; gap:8px;">
+                <div style="width:30px; height:30px; background:#2b9348; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px; font-weight:bold;">WQ</div>
+                <div style="max-width:78%;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">王强 23:40</div>
+                  <div class="bubble-feishu-left" style="padding:7px 10px;"><p style="font-size:13px; line-height:1.5; margin:0;">收到，我刚把接口测完，这就开始核对。</p></div>
+                </div>
+              </div>
+
+              <!-- 张小花 23:45 -->
+              <div style="display:flex; gap:8px;">
+                <div style="width:30px; height:30px; background:#c2185b; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px; font-weight:bold;">花</div>
+                <div style="max-width:78%;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">张小花 23:45</div>
+                  <div class="bubble-feishu-left" style="padding:7px 10px;"><p style="font-size:13px; line-height:1.5; margin:0;">收到，已经在微调图标排布了，今晚不撤。</p></div>
+                </div>
+              </div>
+
+              <!-- 李明 23:50 链接分享 -->
+              <div style="display:flex; gap:8px;">
+                <div style="width:30px; height:30px; background:#e07b00; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px; font-weight:bold;">LM</div>
+                <div style="max-width:80%;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">李明 23:50</div>
+                  <div class="bubble-feishu-left" style="padding:7px 10px; display:flex; flex-direction:column; gap:6px;">
+                    <p style="font-size:13px; line-height:1.5; margin:0;">不错，大家这种精神值得表扬。对了，我刚又看到一个AI视频，说通过神经网络预测用户操作路径可以提升转化率，链接发群里了，大家休息的时候看看，咱们以后的产品方向可以往这上面靠，很有搞头。</p>
+                    <div style="background:#f0f0f0; border:1px solid #ccc; padding:5px 8px; display:flex; align-items:center; gap:6px;">
+                      <span class="material-symbols-outlined" style="font-size:14px; color:#245edb;">link</span>
+                      <span style="font-size:10px; color:#245edb; word-break:break-all;">http://www.ai-user-behavior-predict-pro.com/new-demo</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 张伟 00:05 -->
+              <div style="display:flex; gap:8px;">
+                <div style="width:30px; height:30px; background:#3b5bdb; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px; font-weight:bold;">ZW</div>
+                <div style="max-width:78%;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">张伟 00:05</div>
+                  <div class="bubble-feishu-left" style="padding:7px 10px;"><p style="font-size:13px; line-height:1.5; margin:0;">我看你云文档到现在还没更新，是遇到什么问题了吗？要是没头绪的话，我再帮你捋一捋？</p></div>
+                </div>
+              </div>
+
+              <!-- 我 00:15 -->
+              <div style="display:flex; gap:8px; justify-content:flex-end;">
+                <div style="max-width:78%; text-align:right;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">00:15</div>
+                  <div class="bubble-feishu-right" style="padding:7px 10px;"><p style="font-size:13px; line-height:1.5; margin:0;">不好意思，刚才一直在处理线上的Bug，没来得及看文档，现在就开始弄。</p></div>
+                </div>
+                <div style="width:30px; height:30px; background:#245edb; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px;">我</div>
+              </div>
+
+              <!-- 王强 00:45 -->
+              <div style="display:flex; gap:8px;">
+                <div style="width:30px; height:30px; background:#2b9348; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px; font-weight:bold;">WQ</div>
+                <div style="max-width:78%;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">王强 00:45</div>
+                  <div class="bubble-feishu-left" style="padding:7px 10px;"><p style="font-size:13px; line-height:1.5; margin:0;">我也在公司，刚才把后端接口重新调整了一下，你按照最新的API接口把文档配套更新一下，辛苦了。</p></div>
+                </div>
+              </div>
+
+              <!-- 我 01:20 -->
+              <div style="display:flex; gap:8px; justify-content:flex-end;">
+                <div style="max-width:78%; text-align:right;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">01:20</div>
+                  <div class="bubble-feishu-right" style="padding:7px 10px;"><p style="font-size:13px; line-height:1.5; margin:0;">……好的，收到。</p></div>
+                </div>
+                <div style="width:30px; height:30px; background:#245edb; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px;">我</div>
+              </div>
+
+              <!-- 李明 02:00 链接分享 -->
+              <div style="display:flex; gap:8px;">
+                <div style="width:30px; height:30px; background:#e07b00; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px; font-weight:bold;">LM</div>
+                <div style="max-width:80%;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">李明 02:00</div>
+                  <div class="bubble-feishu-left" style="padding:7px 10px; display:flex; flex-direction:column; gap:6px;">
+                    <p style="font-size:13px; line-height:1.5; margin:0;">刚看到这个AI调优睡眠质量的文章，觉得挺有意思，大家虽然卷，但也得注意身体啊，这是核心资产。</p>
+                    <div style="background:#f0f0f0; border:1px solid #ccc; padding:5px 8px; display:flex; align-items:center; gap:6px;">
+                      <span class="material-symbols-outlined" style="font-size:14px; color:#245edb;">link</span>
+                      <span style="font-size:10px; color:#245edb; word-break:break-all;">http://www.work-life-balance-optimization-ai.org</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 我 02:15 -->
+              <div style="display:flex; gap:8px; justify-content:flex-end;">
+                <div style="max-width:78%; text-align:right;">
+                  <div style="font-size:10px; color:#888; margin-bottom:3px;">02:15</div>
+                  <div class="bubble-feishu-right" style="padding:7px 10px;"><p style="font-size:13px; line-height:1.5; margin:0;">……好的李总，谢谢关心。文档改好了。</p></div>
+                </div>
+                <div style="width:30px; height:30px; background:#245edb; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:11px;">我</div>
+              </div>
+
+            </div>
+            <div style="background:white; border-top:4px solid #000; padding:8px; display:flex; flex-direction:column; gap:8px;">
+              <div style="display:flex; align-items:center; gap:12px; padding:0 4px;">
+                <span class="material-symbols-outlined" style="color:#737686; cursor:pointer;">mood</span>
+                <span class="material-symbols-outlined" style="color:#737686; cursor:pointer;">folder_open</span>
+                <span class="material-symbols-outlined" style="color:#737686; cursor:pointer;">screenshot</span>
+              </div>
+              <div style="display:flex; align-items:flex-end; gap:8px;">
+                <div style="flex:1; min-height:32px; background:white; border:2px solid #000; padding:4px 8px;">
+                  <span class="pixel-font" style="font-size:14px; color:#737686;">输入消息...</span>
+                </div>
+                <div style="width:40px; height:32px; background:#245edb; border:2px solid #000; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                  <span class="material-symbols-outlined" style="color:white; font-size:14px;">send</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QQ 窗口（初始隐藏） -->
+      <div id="window-qq" class="hidden-window" style="display:none; gap:16px; pointer-events:auto; height:520px; user-select:none;">
+        <!-- 左侧联系人列表 -->
+        <div style="width:200px; background:#f0f5ff; border:4px solid #000; box-shadow:8px 8px 0 rgba(0,0,0,0.15); display:flex; flex-direction:column; height:100%;">
+          <div style="height:40px; background:#44a0e4; border-bottom:4px solid #000; display:flex; align-items:center; padding:0 8px; gap:8px; cursor:move;" class="qq-handle">
+            <img alt="QQ" style="width:24px; height:24px; image-rendering:pixelated;" src="./assets/desktop/qq_icon.png"/>
+            <div style="display:flex; flex-direction:column;">
+              <span class="pixel-font" style="color:white; font-size:12px; font-weight:bold; line-height:1.2;">QQ 2005</span>
+              <div style="display:flex; align-items:center; gap:4px;">
+                <div style="width:8px; height:8px; background:#27c93f; border:1px solid #000; border-radius:50%;"></div>
+                <span class="pixel-font" style="color:white; font-size:10px;">在线</span>
+              </div>
+            </div>
+          </div>
+          <!-- 只保留"好友"标签 -->
+          <div style="border-bottom:2px solid #000; background:#d1e8ff; padding:5px 0; text-align:center;">
+            <span class="pixel-font" style="font-size:10px; font-weight:bold;">好友</span>
+          </div>
+          <div class="pixel-scrollbar" style="flex:1; overflow-y:auto; padding:4px; background:white; display:flex; flex-direction:column; gap:2px;">
+            <!-- 妈（离线，灰色头像） -->
+            <div class="qq-contact" data-id="mom" style="display:flex; align-items:center; gap:8px; padding:6px 4px; cursor:pointer; border:1px solid transparent; position:relative;">
+              <div style="width:32px; height:32px; background:#ccc; border:2px solid #999; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; filter:grayscale(1) opacity(0.55);">👩</div>
+              <div style="display:flex; flex-direction:column; overflow:hidden; flex:1;">
+                <span class="pixel-font" style="font-size:13px; font-weight:bold; color:#888;">妈</span>
+                <span id="preview-mom" class="pixel-font" style="font-size:9px; color:#bbb; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">[离线] 记得吃饭</span>
+              </div>
+              <div id="badge-mom" style="display:none; width:10px; height:10px; background:#ff3b30; border-radius:50%; flex-shrink:0;"></div>
+            </div>
+            <!-- SK-张宏文（离线，灰色头像，有新消息时变亮） -->
+            <div class="qq-contact" data-id="zhang" style="display:flex; align-items:center; gap:8px; padding:6px 4px; cursor:pointer; border:1px solid transparent; position:relative;">
+              <div id="avatar-zhang" style="width:32px; height:32px; background:#ccc; border:2px solid #999; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; filter:grayscale(1) opacity(0.55);">🌾</div>
+              <div style="display:flex; flex-direction:column; overflow:hidden; flex:1;">
+                <span class="pixel-font" style="font-size:11px; font-weight:bold; color:#888;">SK-张宏文</span>
+                <span id="preview-zhang" class="pixel-font" style="font-size:9px; color:#bbb; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">[离线] 快回来吧，大家都很想你。</span>
+              </div>
+              <div id="badge-zhang" style="display:none; width:10px; height:10px; background:#ff3b30; border-radius:50%; flex-shrink:0;"></div>
+            </div>
+            <!-- 翡冷翠霸主（离线） -->
+            <div class="qq-contact" data-id="fei" style="display:flex; align-items:center; gap:8px; padding:6px 4px; cursor:pointer; border:1px solid transparent; position:relative;">
+              <div style="width:32px; height:32px; background:#ccc; border:2px solid #999; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; filter:grayscale(1) opacity(0.55);">👑</div>
+              <div style="display:flex; flex-direction:column; overflow:hidden; flex:1;">
+                <span class="pixel-font" style="font-size:9px; font-weight:bold; color:#888;">翡冷翠霸主</span>
+                <span id="preview-fei" class="pixel-font" style="font-size:9px; color:#bbb; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">[离线] 注意身体啊</span>
+              </div>
+              <div id="badge-fei" style="display:none; width:10px; height:10px; background:#ff3b30; border-radius:50%; flex-shrink:0;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧聊天窗口 -->
+        <div style="width:420px; background:white; border:4px solid #000; box-shadow:8px 8px 0 rgba(0,0,0,0.15); display:flex; flex-direction:column; height:100%;">
+          <div style="height:40px; background:#44a0e4; border-bottom:4px solid #000; display:flex; align-items:center; justify-content:space-between; padding:0 12px; cursor:move;" class="qq-chat-handle">
+            <span class="pixel-font" id="qq-chat-title" style="color:white; font-size:13px; font-weight:bold;">选择联系人开始聊天</span>
+            <div style="display:flex; gap:4px;">
+              <div style="width:12px; height:12px; background:rgba(255,255,255,0.2); border:1px solid #000;"></div>
+              <div style="width:12px; height:12px; background:rgba(255,255,255,0.2); border:1px solid #000;"></div>
+            </div>
+          </div>
+          <div class="pixel-scrollbar" id="qq-chat-body" style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; background:#e6f3ff;">
+            <div style="text-align:center; margin-top:60px;">
+              <span class="pixel-font" style="font-size:12px; color:#aaa;">← 点击左侧联系人</span>
+            </div>
+          </div>
+          <div style="height:100px; border-top:4px solid #000; display:flex; flex-direction:column; background:#eef3f9;">
+            <div style="display:flex; gap:8px; padding:4px; border-bottom:1px solid rgba(0,0,0,0.1);">
+              <span class="material-symbols-outlined" style="font-size:16px; color:#666;">face</span>
+              <span class="material-symbols-outlined" style="font-size:16px; color:#666;">image</span>
+            </div>
+            <div style="flex:1; padding:8px; background:white; margin:4px; border:1px solid rgba(0,0,0,0.1);">
+              <span class="pixel-font" style="font-size:13px; color:#999;">输入消息...</span>
+            </div>
+            <div style="display:flex; justify-content:flex-end; padding:4px;">
+              <div style="padding:2px 12px; background:#e0e0e0; border:2px solid #000; cursor:pointer;">
+                <span class="pixel-font" style="font-size:11px; font-weight:bold;">发送(S)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 日记窗口（初始隐藏） -->
+      <div id="window-notes" class="hidden-window" style="display:none; position:relative; width:480px; background:#fdfae8; border:4px solid #000; box-shadow:8px 8px 0 rgba(0,0,0,0.15); display:none; flex-direction:column; height:400px; user-select:none;">
+        <div style="height:40px; background:#8f5c00; border-bottom:4px solid #000; display:flex; align-items:center; justify-content:space-between; padding:0 12px; position:relative; cursor:move;" class="notes-handle">
+          <div style="display:flex; gap:8px;">
+            <div style="width:12px; height:12px; background:#ff5f56; border:2px solid #000;"></div>
+            <div style="width:12px; height:12px; background:#ffbd2e; border:2px solid #000;"></div>
+            <div style="width:12px; height:12px; background:#27c93f; border:2px solid #000;"></div>
+          </div>
+          <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none;">
+            <span class="pixel-font" style="color:white; font-size:16px; font-weight:bold;">备忘录</span>
+          </div>
+          <span class="material-symbols-outlined" style="color:white; font-size:14px;">save</span>
+        </div>
+        <div class="pixel-scrollbar dither-bg" style="flex:1; overflow-y:auto; padding:16px; background:#fdfae8;">
+          <div id="notes-list-view" style="display:flex; flex-direction:column; gap:8px;">
+            <div class="notes-date-item" data-entry-id="memo-pwd" style="cursor:pointer; padding:8px; border:2px solid #000; display:flex; justify-content:space-between; align-items:center;">
+              <span class="pixel-font" style="font-size:13px;">2026-05-11 — 账号密码备忘</span>
+              <span class="material-symbols-outlined" style="font-size:12px;">chevron_right</span>
+            </div>
+          </div>
+          <div id="notes-entry-view" style="display:none; height:100%; flex-direction:column;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; padding-bottom:8px; border-bottom:2px solid #000;">
+              <button id="notes-back-btn" style="display:flex; align-items:center; gap:4px; padding:2px 8px; border:2px solid #000; background:none; cursor:pointer; font-family:'VT323',monospace;">
+                <span class="material-symbols-outlined" style="font-size:12px;">arrow_back</span>
+                <span class="pixel-font" style="font-size:12px;">返回</span>
+              </button>
+              <span class="pixel-font" style="font-size:14px; font-weight:bold;" id="notes-entry-date"></span>
+            </div>
+            <div style="flex:1; padding:12px; background:#fffdf0; border:2px solid #000; overflow-y:auto;">
+              <div id="notes-entry-text" style="font-family:'VT323',monospace; font-size:15px; line-height:1.9; color:#2c3e50; white-space:pre-wrap;"></div>
+            </div>
+          </div>
+        </div>
+        <div style="height:32px; background:#ece9d8; border-top:2px solid #000; display:flex; align-items:center; padding:0 12px; justify-content:space-between;">
+          <span class="pixel-font" style="font-size:10px;">UTF-8</span>
+          <span class="pixel-font" style="font-size:10px;">只读</span>
+        </div>
+      </div>
+    </main>
+
+    <!-- 底部 Dock -->
+    <nav style="position:fixed; bottom:16px; left:50%; transform:translateX(-50%); z-index:50; display:flex; align-items:flex-end; gap:8px; background:rgba(255,255,255,0.2); backdrop-filter:blur(16px); padding:8px; border-radius:16px; border:1px solid rgba(255,255,255,0.2); box-shadow:0 25px 50px rgba(0,0,0,0.25);">
+      <div id="dock-feishu" style="padding:8px; cursor:pointer; transition:transform 0.2s; transform-origin:bottom;" onmouseover="this.style.transform='scale(1.25) translateY(-8px)'" onmouseout="this.style.transform='scale(1)'">
+        <img alt="Feishu" style="width:48px; height:48px; image-rendering:pixelated; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.2);" src="./assets/desktop/feishu_icon.png"/>
+        <div id="indicator-feishu" style="width:4px; height:4px; background:white; border-radius:50%; margin:2px auto 0; opacity:0.8;"></div>
+      </div>
+      <!-- WoW 图标 — 点击进入游戏 -->
+      <div id="dock-wow" style="padding:8px; cursor:pointer; transition:transform 0.2s; transform-origin:bottom; position:relative;" onmouseover="this.style.transform='scale(1.25) translateY(-8px)'" onmouseout="this.style.transform='scale(1)'">
+        <img alt="World of Warcraft" style="width:48px; height:48px; image-rendering:pixelated; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.2);" src="./assets/desktop/wow_icon.png"/>
+        <div style="position:absolute; bottom:-8px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.7); color:#c8a95a; font-family:'VT323',monospace; font-size:10px; white-space:nowrap; padding:1px 4px; opacity:0; transition:opacity 0.2s; pointer-events:none;" class="wow-tooltip">点击登录</div>
+      </div>
+      <div id="dock-qq" style="padding:8px; cursor:pointer; transition:transform 0.2s; transform-origin:bottom; position:relative;" onmouseover="this.style.transform='scale(1.25) translateY(-8px)'" onmouseout="this.style.transform='scale(1)'">
+        <img alt="QQ" style="width:48px; height:48px; image-rendering:pixelated; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.2);" src="./assets/desktop/qq_icon.png"/>
+        <!-- 新消息徽章 -->
+        <div id="qq-badge" style="display:none; position:absolute; top:4px; right:4px; width:16px; height:16px; background:#ff3b30; border:2px solid #fff; border-radius:50%; display:none; align-items:center; justify-content:center;">
+          <span style="color:white; font-size:9px; font-weight:bold; font-family:Arial,sans-serif;">1</span>
+        </div>
+        <div id="indicator-qq" style="width:4px; height:4px; background:white; border-radius:50%; margin:2px auto 0; opacity:0;"></div>
+      </div>
+      <div id="dock-notes" style="padding:8px; cursor:pointer; transition:transform 0.2s; transform-origin:bottom;" onmouseover="this.style.transform='scale(1.25) translateY(-8px)'" onmouseout="this.style.transform='scale(1)'">
+        <img alt="Notes" style="width:48px; height:48px; image-rendering:pixelated; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.2);" src="./assets/desktop/notes_icon.png"/>
+        <div id="indicator-notes" style="width:4px; height:4px; background:white; border-radius:50%; margin:2px auto 0; opacity:0;"></div>
+      </div>
+      <div style="width:1px; height:32px; background:rgba(255,255,255,0.3); margin:0 4px; align-self:center;"></div>
+      <div style="padding:8px; cursor:pointer; transition:transform 0.2s; transform-origin:bottom;" onmouseover="this.style.transform='scale(1.25) translateY(-8px)'" onmouseout="this.style.transform='scale(1)'">
+        <div style="width:48px; height:48px; display:flex; align-items:center; justify-content:center; opacity:0.8;">
+          <span class="material-symbols-outlined" style="color:white; font-size:36px;">delete</span>
+        </div>
+      </div>
+    </nav>
+  </div>
+
+  <script>
+    // ── 桌面 UI 逻辑 ─────────────────────────────────────────────
+    (function() {
+      const diaryEntries = {
+        'memo-pwd': `The Game：siyu@163.com\n密码：我名字全拼+出生年月日。\n\n传代码的地方：mona_builds\n密码：项目名+特殊符号+那个数字。\n\n画画的平台：mona.pixels\n密码：最长那个关键词+调色板编码+生日。\n\n工作云盘：m.chen_sync\n密码：姓氏首字母+口头禅+基础密码。\n\n平时写点碎碎念的空间：mona_n\n密码：大学简写+工号+后缀乱码。`
+      };
+
+      // ── QQ 消息提醒音（Web Audio API 合成经典 QQ 提示音）────────────
+      function playQQSound() {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          // 经典 QQ 消息音：三声短促的"叮"，频率依次为 880 → 1100 → 880 Hz
+          const beeps = [
+            { freq: 880,  start: 0.0,  dur: 0.10 },
+            { freq: 1100, start: 0.15, dur: 0.10 },
+            { freq: 880,  start: 0.30, dur: 0.12 },
+          ];
+          beeps.forEach(({ freq, start, dur }) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+            gain.gain.setValueAtTime(0, ctx.currentTime + start);
+            gain.gain.linearRampToValueAtTime(0.35, ctx.currentTime + start + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+            osc.start(ctx.currentTime + start);
+            osc.stop(ctx.currentTime + start + dur + 0.05);
+          });
+        } catch(e) { /* 浏览器不支持时静默失败 */ }
+      }
+
+      // ── 15 秒后老张连发三条消息 ──────────────────────────────────────
+      const qqNewMsgs = [
+        { from: 'date',  text: '2026-05-29' },
+        { from: 'other', date: '', text: '小雨，好久不见。' },
+        { from: 'other', date: '', text: '有好多话想跟你说！' },
+        { from: 'other', date: '', text: '来找我一趟吧，我在主城等你。' },
+        { from: 'system', date: '', text: '— SK-张宏文 已离线 —' },
+      ];
+      let qqNewMsgShown = false;
+
+      function triggerQQNewMessage() {
+        if (qqNewMsgShown) return;
+        qqNewMsgShown = true;
+
+        // 第一条（日期分隔 + 第一句）立即加入
+        qqChats.zhang.messages.push(qqNewMsgs[0]);
+        qqChats.zhang.messages.push(qqNewMsgs[1]);
+
+        // 第二、三句间隔 3-4s 陆续加入
+        const delays = [3200, 6800, 7400];
+        [2, 3, 4].forEach((idx, i) => {
+          setTimeout(() => {
+            qqChats.zhang.messages.push(qqNewMsgs[idx]);
+
+            // 系统离线消息推送时，头像变灰、联系人名变灰
+            if (i === 2) {
+              const avatarEl2 = document.getElementById('avatar-zhang');
+              if (avatarEl2) {
+                avatarEl2.style.filter = 'grayscale(1) opacity(0.5)';
+                avatarEl2.style.background = '#ccc';
+                avatarEl2.style.border = '2px solid #999';
+              }
+              const previewEl3 = document.getElementById('preview-zhang');
+              if (previewEl3) {
+                previewEl3.textContent = '[离线] 来找我一趟吧';
+                previewEl3.style.color = '#bbb';
+                previewEl3.style.fontWeight = 'normal';
+              }
+            }
+            // 如果当前正在看老张的聊天，实时刷新
+            if (document.getElementById('pc-qq-window') &&
+                document.getElementById('pc-qq-window').style.display !== 'none') {
+              const zhangEl = document.querySelector('.qq-contact[data-id="zhang"]');
+              const body = document.getElementById('qq-chat-body');
+              if (body && zhangEl && zhangEl.style.background !== 'transparent') {
+                body.innerHTML = buildQqMessages('zhang');
+                body.scrollTop = body.scrollHeight;
+              }
+            }
+            // 更新联系人预览
+            const previewEl2 = document.getElementById('preview-zhang');
+            if (previewEl2) previewEl2.textContent = qqNewMsgs[idx].text;
+            // 第二条再播提示音，系统消息不播
+            if (i === 0) playQQSound();
+          }, delays[i]);
+        });
+
+        // 联系人列表：预览文字更新 + 头像变亮 + 红点
+        const previewEl = document.getElementById('preview-zhang');
+        if (previewEl) {
+          previewEl.textContent = qqNewMsgs[1].text;
+          previewEl.style.color = '#333';
+          previewEl.style.fontWeight = 'bold';
+        }
+        const avatarEl = document.getElementById('avatar-zhang');
+        if (avatarEl) {
+          avatarEl.style.filter = 'none';
+          avatarEl.style.background = '#ffd280';
+          avatarEl.style.border = '2px solid #000';
+        }
+        const contactBadge = document.getElementById('badge-zhang');
+        if (contactBadge) contactBadge.style.display = 'block';
+
+        // dock 图标跳动 + 徽章
+        const dockQq = document.getElementById('dock-qq');
+        const dockBadge = document.getElementById('qq-badge');
+        dockQq.classList.add('qq-bouncing');
+        dockQq.style.transform = '';
+        if (dockBadge) dockBadge.style.display = 'flex';
+
+        // 播 QQ 提示音，2 秒后再响一次
+        playQQSound();
+        setTimeout(playQQSound, 2000);
+      }
+
+      // 桌面显示后 15 秒触发（暴露给 main.ts 调用）
+      function startQQTimer() {
+        setTimeout(triggerQQNewMessage, 15000);
+      }
+      window.startQQTimer = startQQTimer;
+
+      // 飞书消息区自动滚到底
+      (function() {
+        const area = document.getElementById('feishu-msg-area');
+        if (area) area.scrollTop = area.scrollHeight;
+      })();
+
+      // 时钟
+      function updateClock() {
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2,'0');
+        const m = String(now.getMinutes()).padStart(2,'0');
+        const el = document.getElementById('desktop-clock');
+        if (el) el.textContent = h + ':' + m;
+      }
+      updateClock();
+      setInterval(updateClock, 30000);
+
+      // 窗口切换
+      const windows = {
+        feishu: document.getElementById('window-feishu'),
+        qq:     document.getElementById('window-qq'),
+        notes:  document.getElementById('window-notes'),
+      };
+      const indicators = {
+        feishu: document.getElementById('indicator-feishu'),
+        qq:     document.getElementById('indicator-qq'),
+        notes:  document.getElementById('indicator-notes'),
+      };
+
+      function showWindow(key) {
+        Object.keys(windows).forEach(k => {
+          if (windows[k]) {
+            if (k === key) {
+              windows[k].style.display = k === 'qq' ? 'flex' : 'flex';
+              windows[k].classList.remove('hidden-window');
+              if (indicators[k]) indicators[k].style.opacity = '0.8';
+            } else {
+              windows[k].style.display = 'none';
+              windows[k].classList.add('hidden-window');
+              if (indicators[k]) indicators[k].style.opacity = '0';
+            }
+          }
+        });
+      }
+
+      document.getElementById('dock-feishu').addEventListener('click', () => showWindow('feishu'));
+      document.getElementById('dock-qq').addEventListener('click', () => {
+        showWindow('qq');
+        // 停止跳动，清除徽章
+        const dockQq = document.getElementById('dock-qq');
+        const badge  = document.getElementById('qq-badge');
+        dockQq.classList.remove('qq-bouncing');
+        if (badge) badge.style.display = 'none';
+        // 如果新消息已触发，自动打开老张的聊天
+        if (qqNewMsgShown) {
+          setTimeout(() => {
+            const zhangEl = document.querySelector('.qq-contact[data-id="zhang"]');
+            if (zhangEl) zhangEl.click();
+          }, 100);
+        }
+      });
+      document.getElementById('dock-notes').addEventListener('click', () => showWindow('notes'));
+
+      // WoW 图标 → 黑幕遮住一切 → 0.5s 后打开 WoW 登录界面
+      document.getElementById('dock-wow').addEventListener('click', () => {
+        const curtain = document.getElementById('black-curtain');
+        // 1. 立刻显示黑幕（pointer-events:all 防止点穿）
+        curtain.style.display = 'block';
+        curtain.style.pointerEvents = 'all';
+        requestAnimationFrame(() => { curtain.style.opacity = '1'; });
+
+        setTimeout(() => {
+          // 2. 隐藏桌面，显示 WoW 登录界面
+          document.getElementById('desktop-overlay').style.display = 'none';
+          showWowLogin();
+          // 3. 收起黑幕
+          curtain.style.opacity = '0';
+          setTimeout(() => {
+            curtain.style.display = 'none';
+            curtain.style.pointerEvents = 'none';
+          }, 300);
+        }, 500);
+      });
+
+      // WoW tooltip 显示
+      const wowDock = document.getElementById('dock-wow');
+      const wowTooltip = wowDock.querySelector('.wow-tooltip');
+      wowDock.addEventListener('mouseover', () => { if(wowTooltip) wowTooltip.style.opacity = '1'; });
+      wowDock.addEventListener('mouseout',  () => { if(wowTooltip) wowTooltip.style.opacity = '0'; });
+
+      // ── QQ 联系人聊天记录 ─────────────────────────────────────────
+      const qqChats = {
+        mom: {
+          name: '妈',
+          avatar: '👩',
+          avatarBg: '#ffcdd2',
+          messages: [
+            { from: 'date',  text: '2026-05-20' },
+            { from: 'other', date: '10:15', text: '刚才新闻看大家都买花，说是520，你单位有人送花没？你要是没空，妈给你转钱，你自己买束花放家里，家里有颜色心情好。' },
+            { from: 'me',    date: '18:40', text: '妈，最近一直在上班，哪有空买花啊，别操心这些了。' },
+            { from: 'date',  text: '2026-05-23' },
+            { from: 'other', date: '21:20', text: '我看朋友圈说你们那边降温了，千万记得多加衣服，别感冒了。' },
+            { from: 'other', date: '23:45', text: '还在加班？' },
+            { from: 'other', date: '23:50', text: '闺女，怎么不回我？' },
+            { from: 'other', date: '23:55', text: '是不是又熬通宵了？妈这心里七上八下的。' },
+            { from: 'me',    date: '2026-05-24 00:10', text: '妈，你怎么又用这个旧软件给我发消息？我手机里全是工作消息，你的消息经常被顶到下面去了。你要是能学会用微信多好，我也能及时看到。' },
+            { from: 'other', date: '2026-05-24 00:15', text: '……好好好，妈不是习惯了嘛，这软件不用登录。你忙吧，妈不打扰你了。' },
+            { from: 'date',  text: '2026-05-25' },
+            { from: 'other', date: '09:00', text: '闺女，生日快乐！今天是你30岁生日，是大日子。妈没敢多打扰你，看你一直没动静，估计还在忙。给你转了个大红包，钱不够就跟妈说。平平安安最重要。' },
+            { from: 'me',    date: '12:30', text: '谢谢妈，刚看到，最近上班太忙了，还没顾得上过生日。' },
+            { from: 'other', date: '12:40', text: '没事，忙完一定要记得吃点好的。' },
+            { from: 'me',    date: '18:20', text: '有空再说吧，晚点还要开会。' },
+            { from: 'date',  text: '2026-05-26' },
+            { from: 'image', date: '14:10', text: '冰箱里剩下的肉馅我给你分装好邮过去了，大概后天到，你收到记得放冰箱冷冻层，下次想吃饺子就自己煮一下，省得总吃外卖，外面的油不好。' },
+            { from: 'me',    date: '22:30', text: '行，我知道了，辛苦妈了。' },
+            { from: 'date',  text: '2026-05-28' },
+            { from: 'other', date: '09:30', text: '今天出门看到这花挺好看，想你小时候喜欢看花。别太累了，身体是自己的。' },
+            { from: 'other', date: '15:40', text: '快递应该到了吧？记得去拿啊。' },
+            { from: 'other', date: '20:15', text: '闺女？' },
+            { from: 'me',    date: '23:55', text: '妈，我现在在开会，还没下楼拿快递呢。有空我再去吧。' },
+            { from: 'other', date: '2026-05-29 00:05', text: '好，那你先忙工作，妈不吵你了。' },
+          ]
+        },
+        zhang: {
+          name: 'SK-张宏文',
+          avatar: '🌾',
+          avatarBg: '#ffd280',
+          messages: [
+            { from: 'date',  text: '2008-05-07' },
+            { from: 'other', date: '20:10', text: '小雨，STSM，速来' },
+            { from: 'me',    date: '20:12', text: '111111' },
+            { from: 'date',  text: '2008-05-08' },
+            { from: 'other', date: '22:45', text: '终于60了啊，给你寄了1000G，去邮箱拿了买马。' },
+            { from: 'me',    date: '22:50', text: '卧槽老张牛逼！谢谢老张！！爱你！！' },
+            { from: 'date',  text: '2008-05-03' },
+            { from: 'other', date: '19:42', text: '今天网吧音响坏了，单曲循环了一下午北京欢迎你。' },
+            { from: 'other', date: '19:43', text: '我现在脑子里全是"我家大门常打开"，人都快废了……' },
+            { from: 'me',    date: '19:45', text: '哈哈哈我们在宿舍也是！隔壁天天放，听得我想吐。' },
+            { from: 'me',    date: '19:46', text: '不过大街上气氛确实挺浓的。' },
+            { from: 'me',    date: '19:46', text: '等8月份开幕式那天晚上，你上线不？' },
+            { from: 'other', date: '19:47', text: '上啊，那天晚上外面肯定到处都是人，还不如在家打游戏。' },
+            { from: 'other', date: '19:48', text: '到时候要是电视转播太吵，咱俩就去艾萨拉找个没人的海边钓鱼。' },
+            { from: 'other', date: '19:48', text: '反正你等级低，去哪都是看风景。' },
+            { from: 'me',    date: '19:49', text: '瞧不起谁呢，我今天已经48级了！' },
+            { from: 'date',  text: '2008-05-05' },
+            { from: 'audio', date: '23:15', text: '周杰伦 - 青花瓷.mp3' },
+            { from: 'other', date: '23:16', text: '虽然春晚都过去好几个月了，但在网吧听还是觉得带劲。' },
+            { from: 'me',    date: '23:22', text: '大半夜的，你失恋了？' },
+            { from: 'me',    date: '23:23', text: '不过这歌确实好听，就是周杰伦唱得太快了，我到现在都没听清天青色等的是啥。' },
+            { from: 'other', date: '23:24', text: '滚蛋，哥这叫有品味。' },
+            { from: 'other', date: '23:25', text: '最近天天被主管留下来加班，整个人都快散架了，听点这种歌提提神。' },
+            { from: 'other', date: '23:25', text: '天青色等烟雨，哥在等你这个路痴。' },
+            { from: 'me',    date: '23:26', text: '身体要紧。' },
+            { from: 'date',  text: '2008-05-09' },
+            { from: 'other', date: '21:10', text: '这几天不上号了，回老家一趟，表弟结婚，得去帮忙。' },
+            { from: 'me',    date: '21:15', text: '成，去吧，玩得开心。' },
+            { from: 'date',  text: '2008-05-14' },
+            { from: 'me',    date: '19:30', text: '老张，你回来了吗？' },
+            { from: 'date',  text: '2008-05-17' },
+            { from: 'me',    date: '22:15', text: '老张，在吗？' },
+            { from: 'date',  text: '2008-05-20' },
+            { from: 'me',    date: '23:45', text: '老张，在？人呢？' },
+            { from: 'date',  text: '2008-05-24' },
+            { from: 'me',    date: '23:10', text: '快回来吧，大家都很想你。' },
+          ]
+        },
+        fei: {
+          name: '翡冷翠霸主',
+          avatar: '👑',
+          avatarBg: '#e8d5ff',
+          messages: [
+            { from: 'date',  text: '2026-05-26' },
+            { from: 'other', date: '14:15', text: '在不' },
+            { from: 'other', date: '14:15', text: '昨晚奇了怪了，突然梦到老张了' },
+            { from: 'other', date: '14:30', text: '都这么久了' },
+            { from: 'other', date: '14:31', text: '就是今早醒了突然想起来，梦里场景居然还是当年网吧那会儿，他还在那拉怪呢，挺真实的' },
+            { from: 'me',    date: '16:45', text: '刚散会' },
+            { from: 'me',    date: '16:45', text: '那是挺久远的了，日有所思吧' },
+            { from: 'other', date: '16:48', text: '也是，估计是最近看老新闻看多了，有点怀旧' },
+            { from: 'other', date: '16:49', text: '一晃都快二十年了，真快啊' },
+            { from: 'me',    date: '16:52', text: '是啊' },
+            { from: 'me',    date: '16:52', text: '时间过得挺快的' },
+            { from: 'other', date: '16:55', text: '你最近咋样，看你朋友圈天天加班，注意身体啊' },
+            { from: 'me',    date: '17:01', text: '挺好的，都是在忙上班开会这点事，习惯了' },
+          ]
+        },
+        qing: {
+          name: '晴天_ o(≧v≦)o',
+          avatar: '☀️',
+          avatarBg: '#c8e6c9',
+          messages: [
+            { from: 'other', date: '2008-05-10', text: '到成都了没有？我和老张已经在这边等你们了(≧∇≦)ﾉ' },
+            { from: 'me',    date: '2008-05-10', text: '快了快了，火车晚点了一个小时😭' },
+            { from: 'other', date: '2008-05-11', text: '昨晚太好玩了！老张讲冷笑话讲到我笑到肚子疼哈哈哈哈' },
+            { from: 'me',    date: '2008-05-11', text: '对！他那个四川口音一出来我就没办法憋住。' },
+            { from: 'other', date: '2008-05-11', text: '以后每年都要来一次面基！说好了！o(≧v≦)o' },
+            { from: 'me',    date: '2008-05-11', text: '说好了！' },
+            { from: 'other', date: '2008-05-14', text: '……你联系上老张了吗？我打他电话一直不通。' },
+            { from: 'me',    date: '2008-05-14', text: '没有……QQ也一直离线。' },
+            { from: 'other', date: '2008-05-14', text: '他家就在震区附近……我好担心他。' },
+          ]
+        }
+      };
+
+      function buildQqMessages(contactId) {
+        const data = qqChats[contactId];
+        if (!data) return '';
+        return data.messages.map(msg => {
+
+          // 日期分割线
+          if (msg.from === 'date') {
+            return `<div style="text-align:center; padding:6px 0;">
+              <span class="pixel-font" style="font-size:10px; color:#aaa; background:#e6f3ff; padding:1px 10px; border-radius:2px;">${msg.text}</span>
+            </div>`;
+          }
+
+          // 系统提示（如"最后上线"）
+          if (msg.from === 'system') {
+            return `<div style="text-align:center; padding:4px 0;">
+              <span class="pixel-font" style="font-size:10px; color:#aaa;">${msg.text}</span>
+            </div>`;
+          }
+
+          const dateLabel = msg.date ? `<span class="pixel-font" style="font-size:9px; color:#aaa; display:block; margin-bottom:3px;">${msg.date}</span>` : '';
+
+          // 音频消息
+          if (msg.from === 'audio') {
+            return `<div style="display:flex; align-items:flex-start; gap:8px;">
+              <div style="width:32px; height:32px; background:${data.avatarBg}; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:14px;">${data.avatar}</div>
+              <div style="max-width:72%;">
+                ${dateLabel}
+                <div class="bubble-qq-left" style="padding:6px 10px; background:#fff; display:flex; align-items:center; gap:8px; min-width:180px;">
+                  <div style="width:28px; height:28px; background:#ff5a00; border:1px solid #000; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <span style="color:white; font-size:14px;">▶</span>
+                  </div>
+                  <div style="display:flex; flex-direction:column;">
+                    <span class="pixel-font" style="font-size:11px; color:#333;">${msg.text}</span>
+                    <span class="pixel-font" style="font-size:9px; color:#aaa;">[音频文件]</span>
+                  </div>
+                </div>
+              </div>
+            </div>`;
+          }
+
+          // 图片消息（妈发的照片）
+          if (msg.from === 'image') {
+            return `<div style="display:flex; align-items:flex-start; gap:8px;">
+              <div style="width:32px; height:32px; background:${data.avatarBg}; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:14px;">${data.avatar}</div>
+              <div style="max-width:72%;">
+                ${dateLabel}
+                <div class="bubble-qq-left" style="padding:6px 8px; background:#fff; display:flex; flex-direction:column; gap:5px;">
+                  <div style="width:120px; height:80px; background:#e0e0e0; border:1px solid #bbb; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:4px;">
+                    <span style="font-size:20px;">📦</span>
+                    <span class="pixel-font" style="font-size:9px; color:#888;">[图片]</span>
+                  </div>
+                  <p class="pixel-font" style="font-size:12px; line-height:1.5; color:#555;">${msg.text}</p>
+                </div>
+              </div>
+            </div>`;
+          }
+
+          // 对方消息
+          if (msg.from === 'other') {
+            return `<div style="display:flex; align-items:flex-start; gap:8px;">
+              <div style="width:32px; height:32px; background:${data.avatarBg}; border:2px solid #000; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:14px;">${data.avatar}</div>
+              <div style="max-width:72%;">
+                ${dateLabel}
+                <div class="bubble-qq-left" style="padding:8px; background:#fff;">
+                  <p class="pixel-font" style="font-size:12px; line-height:1.5;">${msg.text}</p>
+                </div>
+              </div>
+            </div>`;
+          }
+
+          // 我的消息
+          return `<div style="display:flex; align-items:flex-start; gap:8px; justify-content:flex-end;">
+            <div style="max-width:72%; text-align:right;">
+              ${dateLabel}
+              <div class="bubble-qq-right" style="padding:8px; background:#95ec69; border:2px solid #000; border-radius:8px;">
+                <p class="pixel-font" style="font-size:12px; line-height:1.5;">${msg.text}</p>
+              </div>
+            </div>
+            <div style="width:32px; height:32px; background:#dbe1ff; border:2px solid #000; flex-shrink:0;"></div>
+          </div>`;
+
+        }).join('');
+      }
+
+      // 联系人点击
+      let activeContact = null;
+      document.querySelectorAll('.qq-contact').forEach(el => {
+        el.addEventListener('click', () => {
+          const id = el.getAttribute('data-id');
+          // 高亮选中
+          document.querySelectorAll('.qq-contact').forEach(c => {
+            c.style.background = 'transparent';
+            c.style.border = '1px solid transparent';
+          });
+          el.style.background = 'rgba(49,130,206,0.12)';
+          el.style.border = '1px solid rgba(49,130,206,0.3)';
+          activeContact = id;
+          // 清除该联系人的红点
+          const b = document.getElementById(`badge-${id}`);
+          if (b) b.style.display = 'none';
+          // 更新标题和聊天内容
+          const data = qqChats[id];
+          document.getElementById('qq-chat-title').textContent = `正在与 ${data.name} 聊天...`;
+          const body = document.getElementById('qq-chat-body');
+          body.innerHTML = buildQqMessages(id);
+          body.scrollTop = body.scrollHeight;
+        });
+      });
+
+      // 日记导航
+      const listView  = document.getElementById('notes-list-view');
+      const entryView = document.getElementById('notes-entry-view');
+      const entryDate = document.getElementById('notes-entry-date');
+      const entryText = document.getElementById('notes-entry-text');
+      const backBtn   = document.getElementById('notes-back-btn');
+
+      document.querySelectorAll('.notes-date-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const id = item.getAttribute('data-entry-id');
+          if (entryDate) entryDate.textContent = item.querySelector('.pixel-font').textContent;
+          const noteEl = document.getElementById('notes-entry-text');
+          if (noteEl) noteEl.textContent = diaryEntries[id] || '';
+          if (listView)  listView.style.display  = 'none';
+          if (entryView) { entryView.style.display = 'flex'; }
+        });
+      });
+      if (backBtn) {
+        backBtn.addEventListener('click', () => {
+          if (entryView) entryView.style.display = 'none';
+          if (listView)  listView.style.display  = 'flex';
+        });
+      }
+
+      // 拖拽（简化版）
+      function makeDraggable(win, handle) {
+        if (!win || !handle) return;
+        let dragging = false, ox = 0, oy = 0;
+        handle.addEventListener('mousedown', e => {
+          dragging = true; ox = e.clientX - win.offsetLeft; oy = e.clientY - win.offsetTop;
+          win.style.position = 'absolute'; win.style.margin = '0'; win.style.zIndex = '60';
+        });
+        document.addEventListener('mousemove', e => {
+          if (dragging) { win.style.left = (e.clientX - ox) + 'px'; win.style.top = (e.clientY - oy) + 'px'; }
+        });
+        document.addEventListener('mouseup', () => { dragging = false; });
+      }
+      makeDraggable(windows.feishu, windows.feishu?.querySelector('.feishu-handle'));
+      makeDraggable(windows.qq,     document.querySelector('.qq-chat-handle'));
+      makeDraggable(windows.notes,  windows.notes?.querySelector('.notes-handle'));
+    })();
+  </script>
+</body>
+</html>

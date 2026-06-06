@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debug - Battle Cats TD</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .debug-panel {
+      background: rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+    .status { color: #4CAF50; }
+    .error { color: #f44336; }
+    button {
+      padding: 15px 30px;
+      font-size: 18px;
+      margin: 10px;
+      cursor: pointer;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+    }
+    button:hover { background: #45a049; }
+    .scene {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      overflow-y: auto;
+    }
+    .scene.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    #main-menu-scene.active {
+      display: flex !important;
+    }
+    .menu-container {
+      background: rgba(0, 0, 0, 0.8);
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 48px;
+      margin-bottom: 20px;
+      color: #FFD700;
+    }
+  </style>
+</head>
+<body>
+  <div class="debug-panel">
+    <h2>🔍 游戏调试面板</h2>
+    <div id="debug-output"></div>
+    <button onclick="testInit()">测试初始化</button>
+    <button onclick="showMenu()">显示主菜单</button>
+    <button onclick="location.reload()">刷新页面</button>
+  </div>
+
+  <!-- 主菜单 -->
+  <div id="main-menu-scene" class="scene">
+    <div class="menu-container">
+      <h1>🐱 Battle Cats TD 🏰</h1>
+      <div id="menu-gold-display">总金币: 0</div>
+      <button id="btn-start-battle">开始战斗</button>
+      <button id="btn-upgrade-shop">升级商店</button>
+      <button id="btn-recruit">招募单位</button>
+      <button id="btn-reset-save">重置存档</button>
+    </div>
+  </div>
+
+  <!-- 其他场景（占位，确保SceneManager.init()不报错） -->
+  <div id="stage-select-scene" class="scene">
+    <h2>关卡选择场景</h2>
+    <div id="stage-list-container"></div>
+    <button id="btn-back-from-stage-select">返回</button>
+  </div>
+  
+  <div id="deck-edit-scene" class="scene">
+    <h2>卡组编辑场景</h2>
+    <div id="unit-pool-container"></div>
+    <div id="deck-preview-container"></div>
+    <button id="btn-confirm-deck">确认出战</button>
+    <button id="btn-back-from-deck-edit">返回</button>
+  </div>
+  
+  <div id="battle-scene" class="scene">
+    <canvas id="gameCanvas"></canvas>
+  </div>
+  
+  <div id="settlement-scene" class="scene">
+    <div id="settlement-results"></div>
+    <button id="btn-return-to-menu">返回主菜单</button>
+    <button id="btn-retry-stage">再次挑战</button>
+  </div>
+  
+  <div id="shop-scene" class="scene">
+    <h2>升级商店</h2>
+    <div id="shop-gold-display">金币: 0</div>
+    <div id="unit-upgrades-container"></div>
+    <div id="base-upgrade-container"></div>
+    <button id="btn-back-from-shop">返回</button>
+  </div>
+  
+  <div id="recruit-scene" class="scene">
+    <h2>招募单位</h2>
+    <div id="recruit-gold-display">金币: 0</div>
+    <div id="recruit-options-container"></div>
+    <button id="btn-back-from-recruit">返回</button>
+  </div>
+
+  <script>
+    const debugOutput = document.getElementById('debug-output');
+    
+    function log(msg, isError = false) {
+      const p = document.createElement('p');
+      p.className = isError ? 'error' : 'status';
+      p.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      debugOutput.appendChild(p);
+      console.log(msg);
+    }
+    
+    log('页面加载开始...');
+  </script>
+
+  <!-- 加载所有JS文件 -->
+  <script src="Base.js" onerror="log('❌ Base.js 加载失败', true)" onload="log('✓ Base.js')"></script>
+  <script src="Unit.js" onerror="log('❌ Unit.js 加载失败', true)" onload="log('✓ Unit.js')"></script>
+  <script src="SaveData.js" onerror="log('❌ SaveData.js 加载失败', true)" onload="log('✓ SaveData.js')"></script>
+  <script src="SceneManager.js" onerror="log('❌ SceneManager.js 加载失败', true)" onload="log('✓ SceneManager.js')"></script>
+  <script src="MainMenu.js" onerror="log('❌ MainMenu.js 加载失败', true)" onload="log('✓ MainMenu.js')"></script>
+  <script src="StageSelect.js" onerror="log('❌ StageSelect.js 加载失败', true)" onload="log('✓ StageSelect.js')"></script>
+  <script src="DeckEdit.js" onerror="log('❌ DeckEdit.js 加载失败', true)" onload="log('✓ DeckEdit.js')"></script>
+  <script src="Game.js" onerror="log('❌ Game.js 加载失败', true)" onload="log('✓ Game.js')"></script>
+  <script src="Settlement.js" onerror="log('❌ Settlement.js 加载失败', true)" onload="log('✓ Settlement.js')"></script>
+  <script src="Shop.js" onerror="log('❌ Shop.js 加载失败', true)" onload="log('✓ Shop.js')"></script>
+  <script src="Recruit.js" onerror="log('❌ Recruit.js 加载失败', true)" onload="log('✓ Recruit.js')"></script>
+  
+  <script>
+    function testInit() {
+      try {
+        log('开始初始化测试...');
+        
+        // 测试SaveData
+        if (typeof SaveData === 'undefined') {
+          log('❌ SaveData 未定义', true);
+          return;
+        }
+        log('✓ SaveData 已定义');
+        
+        SaveData.init();
+        log('✓ SaveData 初始化成功');
+        
+        const data = SaveData.load();
+        log(`✓ 存档加载成功: 金币=${data.totalGold}`);
+        
+        // 测试SceneManager
+        if (typeof SceneManager === 'undefined') {
+          log('❌ SceneManager 未定义', true);
+          return;
+        }
+        log('✓ SceneManager 已定义');
+        
+        SceneManager.init();
+        log('✓ SceneManager 初始化成功');
+        
+        log('🎉 所有测试通过！可以尝试显示主菜单。');
+        
+      } catch (e) {
+        log(`❌ 错误: ${e.message}`, true);
+        console.error(e);
+      }
+    }
+    
+    function showMenu() {
+      try {
+        log('尝试显示主菜单...');
+        
+        // 初始化场景管理器（如果还没初始化）
+        if (typeof SceneManager !== 'undefined') {
+          SceneManager.init();
+          log('✓ SceneManager 初始化完成');
+          
+          // 使用SceneManager显示主菜单（这会自动调用MainMenu.init()）
+          SceneManager.showScene('main-menu');
+          log('✓ 主菜单已显示并初始化');
+          log('✓ 按钮事件已绑定，现在可以点击按钮了！');
+        } else {
+          log('❌ SceneManager 未定义', true);
+        }
+        
+      } catch (e) {
+        log(`❌ 错误: ${e.message}`, true);
+        console.error(e);
+      }
+    }
+    
+    // 等待所有脚本加载
+    window.addEventListener('load', () => {
+      log('所有资源加载完成');
+      log('自动执行测试...');
+      
+      // 自动执行测试
+      setTimeout(() => {
+        testInit();
+        setTimeout(() => {
+          showMenu();
+          log('🎉 自动测试完成！现在可以点击按钮测试功能了。');
+        }, 500);
+      }, 500);
+    });
+  </script>
+</body>
+</html>

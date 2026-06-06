@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>魔导师的指尖火 - 互动特效</title>
+  
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+      }
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Outfit:wght@200;400&display=swap');
+
+    :root {
+      --primary: #ff6600;
+      --accent: #5e00ff;
+      --bg-dark: #050508;
+      --glass: rgba(0, 0, 0, 0.45); /* 压深背景以增强对比 */
+      --glass-border: rgba(255, 255, 255, 0.15);
+      --font-ethereal: 'Outfit', sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background: var(--bg-dark); color: #fff; font-family: 'Inter', sans-serif; }
+
+    #input_video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); z-index: 1; filter: brightness(0.7) contrast(1.1); }
+    #three-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
+    
+    /* Premium UI Layer */
+    #ui-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; display: flex; flex-direction: column; }
+
+    /* Ethereal Loading Screen */
+    #loading-screen { 
+      position: fixed; inset: 0; background: var(--bg-dark); 
+      display: flex; flex-direction: column; justify-content: center; align-items: center; 
+      z-index: 1000; transition: all 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+    }
+    .magic-core { 
+      width: 60px; height: 60px; background: var(--primary); border-radius: 50%; 
+      filter: blur(20px); animation: pulse-core 3s infinite ease-in-out; 
+    }
+    @keyframes pulse-core {
+      0%, 100% { transform: scale(1); opacity: 0.5; filter: blur(20px); }
+      50% { transform: scale(1.8); opacity: 0.9; filter: blur(40px); }
+    }
+    #loading-screen h1 { 
+      font-family: var(--font-ethereal); font-weight: 200; font-size: 2.2rem; 
+      letter-spacing: 0.8rem; margin-top: 40px; color: rgba(255,255,255,0.9);
+      background: linear-gradient(90deg, #fff, #ff5500, #fff); background-size: 200%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shift-text 5s linear infinite;
+    }
+    @keyframes shift-text { to { background-position: 200% center; } }
+
+    /* Sophisticated HUD */
+    .hud-container { position: absolute; width: 100%; height: 100%; padding: 40px; display: flex; flex-direction: column; justify-content: space-between; }
+    .hud-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .hud-footer { display: flex; justify-content: space-between; align-items: flex-end; }
+
+    /* Unified Arcane Panel */
+    .arcane-panel {
+      display: flex; align-items: center; gap: 24px;
+      padding: 24px 32px; background: var(--glass); backdrop-filter: blur(30px);
+      border: 1px solid var(--glass-border);
+      border-left: 3px solid var(--primary); /* 核心视觉锚点：垂直橙流线 */
+      box-shadow: 10px 0 30px rgba(0,0,0,0.2);
+    }
+    
+    .panel-brand { display: flex; flex-direction: column; gap: 4px; }
+    .player-name {
+      font-family: var(--font-ethereal); font-size: 22px; font-weight: 200;
+      letter-spacing: 0.6rem; color: #fff; text-transform: uppercase;
+    }
+    .player-rank {
+      font-size: 11px; letter-spacing: 0.15rem; color: #fff; /* 改为白色 */
+      opacity: 0.9; text-transform: uppercase; margin-top: 2px;
+      font-weight: 400;
+    }
+
+    .panel-divider { width: 1px; height: 35px; background: rgba(255,255,255,0.2); }
+
+    .panel-stats {
+      display: flex; flex-direction: column; gap: 6px;
+      font-size: 10px; letter-spacing: 0.1rem; color: rgba(255,255,255,0.85); /* 大幅提高亮度 */
+      text-transform: uppercase;
+    }
+    .status-active { color: #fff; display: flex; align-items: center; }
+    .status-dot { width: 4px; height: 4px; background: var(--primary); display: inline-block; margin-right: 8px; box-shadow: 0 0 10px var(--primary); }
+
+    .corner-deco { width: 40px; height: 40px; border: 1px solid var(--glass-border); position: relative; }
+    .corner-deco::after { content: ''; position: absolute; width: 10px; height: 10px; background: var(--primary); top: -2px; left: -2px; }
+
+    .instructions {
+      font-family: var(--font-ethereal); font-size: 14px; letter-spacing: 0.1rem;
+      color: rgba(255,255,255,0.4); text-align: right; line-height: 1.8;
+    }
+
+    .audio-btn {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 24px;
+      background: rgba(255, 102, 0, 0.1);
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      font-family: var(--font-ethereal);
+      font-size: 12px;
+      letter-spacing: 0.15rem;
+      text-transform: uppercase;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      transition: all 0.3s ease;
+      pointer-events: auto;
+    }
+    .audio-btn:hover {
+      background: rgba(255, 102, 0, 0.3);
+      box-shadow: 0 0 15px rgba(255, 102, 0, 0.4);
+    }
+    .audio-btn.active {
+      background: transparent;
+      border-color: rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.4);
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .hidden { opacity: 0; visibility: hidden; }
+    .shimmer { animation: shimmer 2s infinite linear; background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.1), rgba(255,255,255,0)); background-size: 200% 100%; }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+  </style>
+</head>
+<body>
+  <video id="input_video" autoplay playsinline></video>
+  <div id="three-container"></div>
+  <div id="ui-overlay">
+    <div id="loading-screen">
+      <div class="magic-core"></div>
+      <h1>IGNIS</h1>
+      <p style="text-transform:uppercase; letter-spacing:0.4rem; color:rgba(255,100,0,0.5); font-size:10px; margin-top:20px;">Summoning Arcane Fire...</p>
+    </div>
+
+    <div class="hud-container">
+      <div class="hud-header">
+        <div class="arcane-panel">
+          <div class="panel-brand">
+            <div class="player-name">IGNIS</div>
+            <div class="player-rank">Arcane Interface</div>
+          </div>
+          <div class="panel-divider"></div>
+          <div class="panel-stats">
+            <div class="status-active"><span class="status-dot" style="margin-bottom:0px;"></span>System: Active</div>
+            <div id="fps-counter">Syncing...</div>
+          </div>
+        </div>
+        <div class="corner-deco"></div>
+      </div>
+
+      <div class="hud-footer">
+        <div class="corner-deco" style="transform: rotate(180deg)"></div>
+        <div class="instructions">
+          [ Palm to Summon ]<br/>
+          [ Fist to Extinguish ]<br/>
+          [ Move to Stretch ]
+        </div>
+      </div>
+      
+      <button id="audio-toggle-btn" class="audio-btn">Enable Audio</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+
+    const VIDEO_ELEMENT = document.getElementById('input_video');
+    const CONTAINER = document.getElementById('three-container');
+
+    let width = window.innerWidth, height = window.innerHeight;
+    const scene = new THREE.Scene();
+    const aspect = width / height;
+    const camera = new THREE.OrthographicCamera(-aspect, aspect, 1, -1, 0.1, 100);
+    camera.position.z = 5;
+
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.2));
+    CONTAINER.appendChild(renderer.domElement);
+
+    const uniforms = {
+      iTime: { value: 0 },
+      iResolution: { value: new THREE.Vector2(width, height) },
+      u_handPos: { value: new THREE.Vector2(0.5, 0.5) },
+      u_handVisible: { value: 0.0 },
+      u_handScale: { value: 1.0 },
+      u_extProgress: { value: 0.0 },
+      u_velocity: { value: 0.0 } // 横向移动速度
+    };
+
+    const fragmentShader = `
+      uniform float iTime;
+      uniform vec2 iResolution;
+      uniform vec2 u_handPos; 
+      uniform float u_handVisible;
+      uniform float u_handScale;
+      uniform float u_extProgress;
+      uniform float u_velocity;
+
+      float noise(vec3 p) {
+        vec3 i = floor(p);
+        vec4 a = dot(i, vec3(1., 57., 21.)) + vec4(0., 57., 21., 78.);
+        vec3 f = cos((p-i)*acos(-1.))*(-.5)+.5;
+        a = mix(sin(cos(a)*a),sin(cos(1.+a)*(1.+a)), f.x);
+        a.xy = mix(a.xz, a.yw, f.y);
+        return mix(a.x, a.y, f.z);
+      }
+
+      float sphere(vec3 p, vec4 spr) {
+        return length(spr.xyz-p) - spr.w;
+      }
+
+      float flame(vec3 p) {
+        // 核心：仅实现横向甩尾，不改变火苗粗细和噪声节奏
+        float heightFactor = max(0.0, p.y + 1.0);
+        p.x -= pow(heightFactor, 2.3) * u_velocity * 0.35; 
+
+        // 核心形状完全还原
+        float d = sphere(p*vec3(1.,.5,1.), vec4(.0,-1.,.0,1.));
+        return d + (noise(p+vec3(.0,iTime*2.,.0)) + noise(p*3.)*.5)*.25*(p.y) ;
+      }
+
+      float scene(vec3 p) {
+        return min(100.-length(p), abs(flame(p)));
+      }
+
+      vec4 raymarch(vec3 org, vec3 dir) {
+        float d = 0.0, glow = 0.0, eps = 0.02;
+        vec3 p = org;
+        bool glowed = false;
+        for(int i=0; i<64; i++) {
+          d = scene(p) + eps;
+          p += d * dir;
+          if( d>eps ) {
+            if(flame(p) < .0) glowed=true;
+            if(glowed) glow = float(i)/64.;
+          }
+        }
+        return vec4(p,glow);
+      }
+
+      void main() {
+        vec2 v = -1.0 + 2.0 * gl_FragCoord.xy / iResolution.xy;
+        float aspect = iResolution.x / iResolution.y;
+        v.x *= aspect;
+        
+        if (u_handVisible < 0.01) { discard; }
+
+        vec2 handV = vec2(u_handPos.x * 2.0 - 1.0, (1.0 - u_handPos.y) * 2.0 - 1.0);
+        handV.x *= aspect;
+        v = (handV - v) / u_handScale;
+
+        // --- 恢复原本的相机与方向 ---
+        vec3 org = vec3(0., -1.0, 4.0);
+        vec3 dir = normalize(vec3(v.x * 1.6, v.y, -1.5));
+        
+        vec4 p = raymarch(org, dir);
+        float glow = p.w;
+        
+        // --- 色彩系统完全还原 ---
+        vec4 col = mix(vec4(1.,.5,.1,1.), vec4(0.1,.5,1.,1.), p.y*.02+.4);
+        float m = pow(max(glow * 2.0, 0.0), 4.0);
+
+        // --- 强化：更有感的有机显性与飞舞逻辑 ---
+        float alpha = clamp(m, 0.0, 1.0);
+        
+        // 1. 召唤显性逻辑：延长“凝聚”过程
+        float appearShred = noise(p.xyz * 2.5 - iTime * 6.0);
+        // 调整阈值，让碎片感跨越更长的视觉时间
+        alpha *= clamp(u_handVisible * 2.5 - (1.5 - u_handVisible) * appearShred, 0.0, 1.0);
+
+        // 2. 熄灭碎裂逻辑：让消失的过程更挣扎、更支离破碎
+        if (u_extProgress > 0.01) {
+            float shred = noise(p.xyz * 3.5 + iTime * 10.0);
+            // 熄灭时的撕裂系数调大，产生更强烈的“崩溃”感
+            alpha *= clamp(1.0 - u_extProgress * 1.4 + shred * u_extProgress * 0.8, 0.0, 1.0);
+        }
+
+        vec3 finalColor = col.rgb * max(m, 1.0);
+        gl_FragColor = vec4(finalColor, alpha);
+      }
+    `;
+
+    const material = new THREE.ShaderMaterial({
+      uniforms,
+      vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position, 1.0); }`,
+      fragmentShader,
+      transparent: true,
+      blending: THREE.NormalBlending,
+      depthWrite: false
+    });
+
+    const plane = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
+    plane.scale.set(aspect, 1, 1);
+    scene.add(plane);
+
+    // --- HANDS ---
+    let isFist = false;
+    const hands = new window.Hands({ locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
+    hands.setOptions({ maxNumHands: 1, modelComplexity: 0, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+    
+    let targetHandPos = new THREE.Vector2(0.5, 0.5);
+    let currentHandPos = new THREE.Vector2(0.5, 0.5);
+    let currentV = 0, currentS = 1, targetV = 0;
+
+    hands.onResults((res) => {
+      document.getElementById('loading-screen').classList.add('hidden');
+      if (res.multiHandLandmarks && res.multiHandLandmarks.length > 0) {
+        const l = res.multiHandLandmarks[0];
+        const dist = Math.hypot(l[0].x - l[9].x, l[0].y - l[9].y);
+        
+        let closed = 0;
+        [[8,5], [12,9], [16,13], [20,17]].forEach(([t, m]) => {
+          if (Math.hypot(l[t].x - l[m].x, l[t].y - l[m].y) < dist * 0.5) closed++;
+        });
+        isFist = closed >= 3;
+        
+        targetV = isFist ? 0.0 : 1.0;
+        currentS = 0.5 + (dist / 0.15) * 0.5;
+        targetHandPos.set(1.0 - l[9].x, l[9].y - 0.15);
+      } else {
+        targetV = 0.0;
+      }
+    });
+
+    new window.Camera(VIDEO_ELEMENT, {
+      onFrame: async () => { await hands.send({ image: VIDEO_ELEMENT }); },
+      width: 640, height: 480
+    }).start();
+
+    // --- AUDIO SYSTEM ---
+    class ArcaneFlameAudio {
+      constructor() {
+        this.ctx = null;
+        this.masterGain = null;
+        this.isPlaying = false;
+        
+        const btn = document.getElementById('audio-toggle-btn');
+        const unlockAudio = () => {
+          if (!this.ctx) this.init();
+          else if (this.ctx.state === 'suspended') this.ctx.resume();
+          
+          btn.textContent = "Audio Active";
+          btn.classList.add('active');
+        };
+        btn.addEventListener('click', unlockAudio);
+      }
+
+      init() {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        this.ctx = new AudioContext();
+        
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.value = 0.0;
+        this.masterGain.connect(this.ctx.destination);
+
+        const bufferSize = this.ctx.sampleRate * 2;
+        const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        
+        const crackleBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const crackleOutput = crackleBuffer.getChannelData(0);
+
+        let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          
+          // Pink noise for combustion rumble
+          b0 = 0.99886 * b0 + white * 0.0555179;
+          b1 = 0.99332 * b1 + white * 0.0750759;
+          b2 = 0.96900 * b2 + white * 0.1538520;
+          b3 = 0.86650 * b3 + white * 0.3104856;
+          b4 = 0.55000 * b4 + white * 0.5329522;
+          b5 = -0.7616 * b5 - white * 0.0168980;
+          output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+          output[i] *= 0.11; 
+          b6 = white * 0.115926;
+          
+          // Sparse spikes for crackle (extremely rare, softer)
+          if (Math.random() > 0.9985) {
+            crackleOutput[i] = (Math.random() * 2 - 1) * 1.5; // Softer clicks
+          } else {
+            crackleOutput[i] = 0;
+          }
+        }
+
+        // 1. Combustion Rumble (Low/Mid - extremely suppressed to avoid wind sound)
+        this.rumbleSource = this.ctx.createBufferSource();
+        this.rumbleSource.buffer = noiseBuffer;
+        this.rumbleSource.loop = true;
+
+        this.rumbleFilter = this.ctx.createBiquadFilter();
+        this.rumbleFilter.type = 'lowpass';
+        this.rumbleFilter.frequency.value = 150; // Very low cutoff
+        this.rumbleFilter.Q.value = 0.5; // Less resonance
+
+        this.rumbleGain = this.ctx.createGain();
+        this.rumbleGain.gain.value = 0.3; // Barely audible baseline rumble
+
+        this.rumbleSource.connect(this.rumbleFilter);
+        this.rumbleFilter.connect(this.rumbleGain);
+        this.rumbleGain.connect(this.masterGain);
+
+        // 2. Crackling/Popping (Bandpass on Spikes)
+        this.crackleFilter = this.ctx.createBiquadFilter();
+        this.crackleFilter.type = 'bandpass';
+        this.crackleFilter.frequency.value = 1800;
+        this.crackleFilter.Q.value = 1.5; // Short resonant snaps
+
+        this.crackleSource = this.ctx.createBufferSource();
+        this.crackleSource.buffer = crackleBuffer;
+        this.crackleSource.loop = true;
+        
+        this.crackleGain = this.ctx.createGain();
+        this.crackleGain.gain.value = 0.0; // Dynamic via update()
+        
+        this.crackleSource.connect(this.crackleFilter);
+        this.crackleFilter.connect(this.crackleGain);
+        this.crackleGain.connect(this.masterGain);
+
+        this.rumbleSource.start();
+        this.crackleSource.start();
+        
+        this.isPlaying = true;
+      }
+
+      update(vis, prog, velocity) {
+        if (!this.ctx || !this.isPlaying) return;
+        
+        const baseIntensity = vis * (1.0 - prog);
+        let targetVol = baseIntensity * 0.35; // Lower overall volume
+        const flare = Math.min(Math.abs(velocity) * 0.2, 0.5);
+
+        const now = this.ctx.currentTime;
+        this.masterGain.gain.setTargetAtTime(targetVol + targetVol * flare, now, 0.2); 
+        
+        // Rumble frequency - barely moves, keeps wind noise away
+        const targetFreq = 100 + (baseIntensity * 50) + (flare * 80);
+        this.rumbleFilter.frequency.setTargetAtTime(targetFreq, now, 0.3); 
+        
+        // Crackle volume - just a little bit
+        const crackleVol = (baseIntensity * 0.4) + (flare * 0.8);
+        this.crackleGain.gain.setTargetAtTime(crackleVol, now, 0.15);
+      }
+    }
+
+    const flameAudio = new ArcaneFlameAudio();
+
+    // --- ANIMATION ---
+    const clock = new THREE.Clock();
+    let vis = 0, sca = 1, prog = 0;
+    let lastX = 0.5;
+    let smoothVelocity = 0;
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const time = clock.getElapsedTime();
+      const dt = clock.getDelta() || 0.016; 
+      
+      // 计算实时横向速度
+      const currentX = currentHandPos.x;
+      const velocity = (currentX - lastX) / dt;
+      lastX = currentX;
+
+      // 速度平滑与钳制 (5.0 是响应灵敏度)
+      const targetVel = Math.max(-1.0, Math.min(1.0, velocity * 5.0));
+      smoothVelocity += (targetVel - smoothVelocity) * 0.1;
+
+      // 大幅调低线性插值系数，延长显性/隐性时间 (0.15 -> 0.04)
+      vis += (targetV - vis) * 0.04; 
+      sca += (currentS - sca) * 0.12;
+      
+      const targetP = isFist ? 1.0 : 0.0;
+      // 灭火进度也放慢 (0.12 -> 0.05)
+      prog += (targetP - prog) * 0.05; 
+
+      currentHandPos.lerp(targetHandPos, 0.15);
+      
+      uniforms.iTime.value = time;
+      uniforms.u_handPos.value.copy(currentHandPos);
+      uniforms.u_handVisible.value = vis;
+      uniforms.u_handScale.value = sca;
+      uniforms.u_extProgress.value = prog;
+      uniforms.u_velocity.value = smoothVelocity;
+      
+      flameAudio.update(vis, prog, smoothVelocity);
+      
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      width = window.innerWidth; height = window.innerHeight;
+      renderer.setSize(width, height);
+      uniforms.iResolution.value.set(width, height);
+    });
+  </script>
+</body>
+</html>

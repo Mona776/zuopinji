@@ -1,0 +1,124 @@
+      // 结束战斗
+      endBattle(victory, remainingMoney = 0) {
+        // 播放胜利/失败音乐
+        if (window.audioManager) {
+          if (victory) window.audioManager.playVictory();
+          else window.audioManager.playDefeat();
+        }
+
+        if (this.battleUILoop) {
+          cancelAnimationFrame(this.battleUILoop);
+          this.battleUILoop = null;
+        }
+        
+        if (this.gameInstance) {
+          this.gameInstance.isRunning = false;
+          this.gameInstance = null;
+        }
+        
+        // 如果在 Run 模式中
+        if (this.runState.active) {
+          if (victory) {
+            // 胜利：计算奖励
+            const baseGold = [100, 150, 200, 300, 500][this.runState.currentStage - 1] || 100;
+            const remainingBonus = Math.floor(remainingMoney * 0.01);
+            const totalReward = baseGold + remainingBonus;
+            
+            this.runState.runGold += totalReward;
+            
+            // 显示结算界面 (内置在战斗场景)
+            const settlementOverlay = document.getElementById('run-settlement-panel');
+            settlementOverlay.classList.remove('hidden');
+            
+            document.getElementById('settlement-title').textContent = 'VICTORY';
+            document.getElementById('base-reward-gold').textContent = `+${baseGold}`;
+            document.getElementById('remaining-gold-bonus').textContent = `+${remainingBonus} (来自 ${Math.floor(remainingMoney)} 💰)`;
+            document.getElementById('total-reward-gold').textContent = totalReward;
+            
+            const continueBtn = document.getElementById('settlement-continue-btn');
+            continueBtn.textContent = this.runState.currentStage >= 5 ? '查看最终评价' : '前往商店';
+            
+            continueBtn.onclick = () => {
+              settlementOverlay.classList.add('hidden'); // 隐藏面板
+              
+              if (this.runState.currentStage >= 5) {
+                // 全部通关
+                const container = document.getElementById('settlement-results');
+                container.innerHTML = `
+                  <div class="settlement-victory">
+                    <h1 class="victory-title">🎉 全部通关！</h1>
+                    <div class="settlement-stats">
+                      <div class="stat-row">
+                        <span class="stat-label">Run 金币:</span>
+                        <span class="stat-value gold-text-large">${this.runState.runGold}</span>
+                      </div>
+                      <p class="victory-message">恭喜完成所有关卡！</p>
+                    </div>
+                  </div>
+                `;
+                this.showScene('settlement');
+                this.endRun();
+              } else {
+                // 还有后续关卡，进入商店
+                this.runState.currentStage++;
+                this.runState.shopRerollCost = 20; // 重置 Reroll 价格
+                this.generateShopItems(); // 生成新商店内容
+                this.showScene('run-shop');
+                this.renderRunShop();
+              }
+            };
+          } else {
+            // 失败：清空所有进度
+            const settlementOverlay = document.getElementById('run-settlement-panel');
+            settlementOverlay.classList.remove('hidden');
+            
+            document.getElementById('settlement-title').textContent = 'DEFEAT';
+            document.getElementById('base-reward-gold').textContent = '+0';
+            document.getElementById('remaining-gold-bonus').textContent = '所有 Run 进度已清空';
+            document.getElementById('total-reward-gold').textContent = 0;
+            
+            const continueBtn = document.getElementById('settlement-continue-btn');
+            continueBtn.textContent = '返回主菜单';
+            
+            continueBtn.onclick = () => {
+              settlementOverlay.classList.add('hidden');
+              this.showScene('main-menu');
+              this.endRun();
+            };
+          }
+        } else {
+          // 非 Run 模式处理
+          const container = document.getElementById('settlement-results');
+          if (victory) {
+            const baseGold = [100, 150, 200, 300, 500][this.currentStage - 1] || 100;
+            this.save.gold += baseGold;
+            this.saveSave();
+            container.innerHTML = `
+              <div class="settlement-victory">
+                <h1 class="victory-title">🎉 关卡完成！</h1>
+                <div class="settlement-stats">
+                  <div class="stat-row">
+                    <span class="stat-label">关卡:</span>
+                    <span class="stat-value">第${this.currentStage}关</span>
+                  </div>
+                  <div class="stat-row">
+                    <span class="stat-label">基础奖励:</span>
+                    <span class="stat-value gold-text">${baseGold} 金币</span>
+                  </div>
+                </div>
+              </div>
+            `;
+          } else {
+            container.innerHTML = `
+              <div class="settlement-defeat">
+                <h1 class="defeat-title">💀 战斗失败</h1>
+                <div class="stat-row">
+                  <span class="stat-label">关卡:</span>
+                  <span class="stat-value">第${this.currentStage}关</span>
+                </div>
+              </div>
+            `;
+          }
+          this.showScene('settlement');
+        }
+      },
